@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JETI Vision Mirror – v1</title>
+
+<style>
+  body{
+    margin:0;
+    background:#000;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:"Segoe UI", Arial, sans-serif;
+  }
+
+  .box{
+    position:relative;
+    width:360px;
+    height:520px;
+    background:#000;
+    overflow:hidden;
+    border-radius:24px;
+  }
+
+  video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transform:scaleX(-1);
+    display:block;
+  }
+
+  .brand{
+    position:absolute;
+    top:16px;
+    left:20px;
+    color:#fff;
+    font-size:14px;
+    letter-spacing:1px;
+    opacity:.9;
+    z-index:40;
+  }
+
+  #hair{
+    position:absolute;
+    left:50%;
+    top:50%;
+    pointer-events:none;
+    z-index:80;
+    display:none;
+  }
+
+  .controls{
+    position:absolute;
+    bottom:18px;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+    z-index:90;
+    padding:0 12px;
+    box-sizing:border-box;
+  }
+
+  .row{ display:flex; gap:12px; justify-content:center; width:100%; }
+
+  button{
+    padding:10px 18px;
+    border-radius:22px;
+    border:none;
+    background:#fff;
+    font-size:13px;
+    cursor:pointer;
+    min-width:96px;
+  }
+
+  #startScreen{
+    position:absolute;
+    inset:0;
+    background:#000;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    cursor:pointer;
+    text-align:center;
+  }
+  .startTitle{color:#fff;font-size:32px;letter-spacing:6px;font-weight:600;}
+  .startSub{margin-top:14px;color:#fff;opacity:.7;font-size:14px;letter-spacing:1px;}
+</style>
+</head>
+
+<body>
+
+<div class="box" id="box">
+
+  <div id="startScreen">
+    <div class="startTitle">JETI VISION</div>
+    <div class="startSub">Touch to Begin</div>
+  </div>
+
+  <div class="brand">JETI VISION</div>
+
+  <video id="video" autoplay muted playsinline></video>
+  <img id="hair" alt="hair overlay"/>
+
+  <div class="controls">
+    <div class="row">
+      <button id="btnA" type="button">Style A</button>
+      <button id="btnB" type="button">Style B</button>
+      <button id="btnClear" type="button">Clear</button>
+    </div>
+    <div class="row">
+      <button id="btnFull" type="button">Fullscreen</button>
+      <button id="btnReset" type="button">Reset</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+<script>
+const HAIR_A="./style-a.png";
+const HAIR_B="./style-b.png";
+const box=document.getElementById("box");
+const video=document.getElementById("video");
+const hair=document.getElementById("hair");
+const startScreen=document.getElementById("startScreen");
+const btnA=document.getElementById("btnA");
+const btnB=document.getElementById("btnB");
+const btnClear=document.getElementById("btnClear");
+const btnFull=document.getElementById("btnFull");
+const btnReset=document.getElementById("btnReset");
+let currentStyle=null;
+const FOREHEAD=10;
+const RAWY_OFFSET=0.10;
+const TRANSLATE_Y=-65;
+let hx=0,hy=0;
+function setStyle(key){currentStyle=key;hair.src=(key==="a")?HAIR_A:HAIR_B;hair.style.display="block";}
+btnA.onclick=()=>setStyle("a");
+btnB.onclick=()=>setStyle("b");
+btnClear.onclick=()=>{currentStyle=null;hair.style.display="none";};
+btnReset.onclick=()=>location.reload();
+btnFull.onclick=async()=>{try{if(!document.fullscreenElement)await box.requestFullscreen();else await document.exitFullscreen();}catch(e){console.log(e)}};
+startScreen.onclick=()=>startScreen.style.display="none";
+const mesh=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+mesh.setOptions({maxNumFaces:1,refineLandmarks:false,minDetectionConfidence:.6,minTrackingConfidence:.6});
+mesh.onResults(res=>{
+ if(!res.multiFaceLandmarks?.length)return;
+ const f=res.multiFaceLandmarks[0][FOREHEAD]; if(!f)return;
+ const rawX=1-f.x, rawY=f.y+RAWY_OFFSET;
+ hx=hx*.8+rawX*.2; hy=hy*.8+rawY*.2;
+ if(!currentStyle)return;
+ hair.style.left=`${hx*box.clientWidth}px`;
+ hair.style.top=`${hy*box.clientHeight}px`;
+ hair.style.transform=`translate(-50%, ${TRANSLATE_Y}%) scale(${box.clientWidth/300})`;
+});
+new Camera(video,{onFrame:async()=>await mesh.send({image:video}),width:640,height:480}).start();
+</script>
+</body>
+</html>
