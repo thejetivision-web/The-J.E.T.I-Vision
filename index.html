@@ -1,6 +1,7 @@
 
 <!doctype html>
 <html lang="en">
+
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,47 +13,49 @@
   box-sizing: border-box;
 }
 
+:root {
+  --background: #080808;
+  --panel: #171417;
+  --pink: #dba3be;
+  --light-pink: #f5e4ec;
+  --muted: #bcb2b8;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  min-height: 100dvh;
-  padding: 10px;
-  background: #080808;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--background);
+  color: white;
   font-family: "Segoe UI", Arial, sans-serif;
-  color: #fff;
 }
 
-.box {
+/* Main application */
+
+.app {
+  width: min(100%, 460px);
+  margin: 0 auto;
+  padding: 14px 12px 28px;
+}
+
+/* Mirror */
+
+.mirror {
   position: relative;
-  width: min(100%, 390px);
-  height: min(720px, calc(100dvh - 20px));
-  min-height: 420px;
+  width: 100%;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   border-radius: 24px;
-  background: #111;
-  border: 1px solid #634653;
+  background: #141414;
+  border: 1px solid #624653;
+  isolation: isolate;
 }
 
-video {
+.mirror video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
-}
-
-.brand {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  z-index: 40;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-shadow: 0 2px 6px #000;
 }
 
 #hair {
@@ -62,191 +65,374 @@ video {
   height: auto;
   max-width: none;
   pointer-events: none;
-  transform-origin: 50% 50%;
-  z-index: 50;
+  transform-origin: center center;
+  z-index: 5;
 }
 
-.controls {
+.mirrorBrand {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 14px 12px;
-  padding-bottom: max(14px, env(safe-area-inset-bottom));
-  background: linear-gradient(
-    transparent,
-    rgba(0,0,0,.96) 18%
-  );
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  z-index: 90;
-  max-height: 70%;
-  overflow-y: auto;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px black;
 }
 
-.row {
-  display: flex;
-  gap: 7px;
-}
+/* Start overlay */
 
-button {
-  flex: 1;
-  min-width: 0;
-  padding: 11px 6px;
-  border: 0;
-  border-radius: 22px;
-  background: #f5e4ec;
-  color: #241820;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button.active {
-  background: #dba3be;
-}
-
-.adjustments {
-  display: none;
-  padding: 10px;
-  background: rgba(20,20,20,.86);
-  border-radius: 13px;
-}
-
-.adjustments label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  margin: 7px 0 4px;
-}
-
-.adjustments input {
-  width: 100%;
-  accent-color: #dfa9c4;
-}
-
-#status {
-  text-align: center;
-  font-size: 11px;
-  color: #eee;
-  min-height: 14px;
-}
-
-#startScreen {
+.startScreen {
   position: absolute;
   inset: 0;
-  z-index: 200;
-  background: #080808;
+  z-index: 20;
+  background: #101010;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 25px;
+  padding: 24px;
 }
 
 .startTitle {
   font-size: 36px;
+  font-weight: 700;
   letter-spacing: 6px;
+}
+
+.startSubtitle {
+  margin-top: 14px;
+  color: #ddd;
+  font-size: 14px;
+}
+
+.startButton {
+  margin-top: 26px;
+  padding: 14px 30px;
+  border-radius: 30px;
+  border: none;
+  background: var(--pink);
+  color: #241820;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Controls live BELOW the mirror */
+
+.controlPanel {
+  margin-top: 14px;
+  padding: 15px;
+  border-radius: 20px;
+  background: var(--panel);
+  border: 1px solid #30272d;
+}
+
+.panelHeading {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.controlButton {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 6px;
+  border: none;
+  border-radius: 22px;
+  background: var(--light-pink);
+  color: #241820;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.controlButton.active {
+  background: var(--pink);
+}
+
+.controlButton:disabled,
+.startButton:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.adjustToggle {
+  width: 100%;
+  padding: 13px;
+  margin-top: 2px;
+  border: 1px solid #775267;
+  border-radius: 13px;
+  background: #30222b;
+  color: white;
+  font-size: 13px;
   font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.startSub {
-  margin-top: 15px;
-  font-size: 14px;
-  opacity: .8;
+.adjustToggle:disabled {
+  opacity: .5;
+  cursor: not-allowed;
 }
 
-#startButton {
-  flex: none;
-  margin-top: 28px;
-  padding: 13px 28px;
-  font-size: 14px;
+.adjustments {
+  display: none;
+  margin-top: 12px;
+  padding: 14px;
+  background: #211b20;
+  border-radius: 14px;
 }
 
-.box:fullscreen {
+.adjustments.open {
+  display: block;
+}
+
+.sliderGroup {
+  margin-bottom: 16px;
+}
+
+.sliderGroup:last-child {
+  margin-bottom: 0;
+}
+
+.sliderGroup label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.sliderGroup input {
+  width: 100%;
+  accent-color: var(--pink);
+  cursor: pointer;
+}
+
+.status {
+  margin-top: 12px;
+  min-height: 18px;
+  text-align: center;
+  font-size: 12px;
+  color: #c9bbc3;
+}
+
+.footer {
+  text-align: center;
+  padding: 18px 0 6px;
+  font-size: 11px;
+  color: #9f8d97;
+  letter-spacing: 1px;
+}
+
+/* Fullscreen affects mirror only */
+
+.mirror:fullscreen {
   width: 100vw;
   height: 100dvh;
+  aspect-ratio: auto;
   border-radius: 0;
+  border: 0;
 }
+
+/* Larger screens */
+
+@media (min-width: 700px) {
+  .app {
+    width: min(100%, 560px);
+    padding-top: 24px;
+  }
+
+  .mirror {
+    aspect-ratio: 4 / 5;
+  }
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="box" id="box">
+<main class="app">
 
-  <div id="startScreen">
-    <div class="startTitle">J.E.T.I.</div>
-    <div class="startSub">
-      The Future of Hair Starts Here
+  <!-- Full unobstructed mirror -->
+
+  <div class="mirror" id="mirror">
+
+    <video
+      id="video"
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+    <img
+      id="hair"
+      alt="Virtual hairstyle">
+
+    <div class="mirrorBrand">
+      J.E.T.I. VISION
     </div>
-    <button id="startButton" type="button">
-      Touch to Begin
-    </button>
+
+    <div class="startScreen" id="startScreen">
+      <div class="startTitle">J.E.T.I.</div>
+
+      <div class="startSubtitle">
+        The Future of Hair Starts Here
+      </div>
+
+      <button
+        class="startButton"
+        id="startButton"
+        type="button">
+        Touch to Begin
+      </button>
+    </div>
+
   </div>
 
-  <div class="brand">J.E.T.I. VISION</div>
+  <!-- Controls outside the mirror -->
 
-  <video id="video" autoplay muted playsinline></video>
+  <section class="controlPanel">
 
-  <img id="hair" alt="Virtual hairstyle">
-
-  <div class="controls">
-
-    <div class="row">
-      <button id="btnA" type="button">Style A</button>
-      <button id="btnB" type="button">Style B</button>
-      <button id="btnClear" type="button">Clear</button>
+    <div class="panelHeading">
+      Explore Your Look
     </div>
 
-    <div class="row">
-      <button id="btnAuto" type="button">Auto Fit</button>
-      <button id="btnResetFit" type="button">Reset Fit</button>
+    <div class="buttonRow">
+      <button class="controlButton" id="btnA" type="button">
+        Style A
+      </button>
+
+      <button class="controlButton" id="btnB" type="button">
+        Style B
+      </button>
+
+      <button class="controlButton" id="btnClear" type="button">
+        Clear
+      </button>
     </div>
+
+    <div class="buttonRow">
+      <button class="controlButton" id="btnAuto" type="button">
+        Auto Fit
+      </button>
+
+      <button class="controlButton" id="btnFull" type="button">
+        Fullscreen
+      </button>
+
+      <button class="controlButton" id="btnReset" type="button">
+        Reset
+      </button>
+    </div>
+
+    <!-- Collapsible adjustment panel -->
+
+    <button
+      class="adjustToggle"
+      id="btnAdjust"
+      type="button"
+      aria-expanded="false"
+      aria-controls="adjustments"
+      disabled>
+
+      <span>Adjust Hair</span>
+      <span id="adjustArrow">+</span>
+
+    </button>
 
     <div class="adjustments" id="adjustments">
 
-      <label>
-        Hair Size
-        <span id="sizeValue">100%</span>
-      </label>
-      <input id="sizeSlider"
-        type="range" min="40" max="180" value="100">
+      <div class="sliderGroup">
+        <label for="sizeSlider">
+          <span>Hair Size</span>
+          <span id="sizeValue">100%</span>
+        </label>
 
-      <label>
-        Hair Width
-        <span id="widthValue">100%</span>
-      </label>
-      <input id="widthSlider"
-        type="range" min="70" max="180" value="100">
+        <input
+          id="sizeSlider"
+          type="range"
+          min="40"
+          max="180"
+          value="100">
+      </div>
 
-      <label>
-        Move Up / Down
-        <span id="yValue">0</span>
-      </label>
-      <input id="ySlider"
-        type="range" min="-200" max="200" value="0">
+      <div class="sliderGroup">
+        <label for="widthSlider">
+          <span>Hair Width</span>
+          <span id="widthValue">100%</span>
+        </label>
 
-      <label>
-        Move Left / Right
-        <span id="xValue">0</span>
-      </label>
-      <input id="xSlider"
-        type="range" min="-200" max="200" value="0">
+        <input
+          id="widthSlider"
+          type="range"
+          min="70"
+          max="180"
+          value="100">
+      </div>
+
+      <div class="sliderGroup">
+        <label for="ySlider">
+          <span>Move Up / Down</span>
+          <span id="yValue">0</span>
+        </label>
+
+        <input
+          id="ySlider"
+          type="range"
+          min="-200"
+          max="200"
+          value="0">
+      </div>
+
+      <div class="sliderGroup">
+        <label for="xSlider">
+          <span>Move Left / Right</span>
+          <span id="xValue">0</span>
+        </label>
+
+        <input
+          id="xSlider"
+          type="range"
+          min="-200"
+          max="200"
+          value="0">
+      </div>
+
+      <div class="buttonRow">
+        <button
+          class="controlButton"
+          id="btnResetFit"
+          type="button">
+          Reset Hair Fit
+        </button>
+      </div>
 
     </div>
 
-    <div class="row">
-      <button id="btnFull" type="button">Fullscreen</button>
-      <button id="btnReset" type="button">Reset</button>
+    <div class="status" id="status">
+      Ready to begin
     </div>
 
-    <div id="status">Ready to begin</div>
+  </section>
 
+  <div class="footer">
+    THE J.E.T.I. VISION
   </div>
-</div>
+
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
@@ -254,17 +440,29 @@ button.active {
 <script>
 "use strict";
 
+// ------------------------------------------------
+// HAIRSTYLE IMAGES
+// ------------------------------------------------
+
 const HAIR_A = "./style-a.png";
 const HAIR_B = "./style-b.png";
 
-const box = document.getElementById("box");
+// ------------------------------------------------
+// ELEMENTS
+// ------------------------------------------------
+
+const mirror = document.getElementById("mirror");
 const video = document.getElementById("video");
 const hair = document.getElementById("hair");
+
 const statusText = document.getElementById("status");
 
 const startScreen = document.getElementById("startScreen");
 const startButton = document.getElementById("startButton");
+
 const adjustments = document.getElementById("adjustments");
+const btnAdjust = document.getElementById("btnAdjust");
+const adjustArrow = document.getElementById("adjustArrow");
 
 const sizeSlider = document.getElementById("sizeSlider");
 const widthSlider = document.getElementById("widthSlider");
@@ -272,17 +470,38 @@ const xSlider = document.getElementById("xSlider");
 const ySlider = document.getElementById("ySlider");
 
 const btnAuto = document.getElementById("btnAuto");
+const btnA = document.getElementById("btnA");
+const btnB = document.getElementById("btnB");
+
+// ------------------------------------------------
+// STATE
+// ------------------------------------------------
 
 let currentStyle = null;
 let camera = null;
 let cameraStarted = false;
+let cameraStarting = false;
+
 let autoFit = true;
 let face = null;
 
-// Your previously tested Style A settings.
+// Your Style A adjustments from testing.
+// Move Up/Down now starts at -53.
+
 const defaults = {
-  a: { size: 121, width: 120, x: 0, y: 89 },
-  b: { size: 100, width: 100, x: 0, y: 0 }
+  a: {
+    size: 121,
+    width: 120,
+    x: 0,
+    y: -53
+  },
+
+  b: {
+    size: 100,
+    width: 100,
+    x: 0,
+    y: 0
+  }
 };
 
 const settings = {
@@ -290,17 +509,21 @@ const settings = {
   b: { ...defaults.b }
 };
 
-// Fine-tuning values for individual images.
 const styleConfig = {
   a: {
     widthMultiplier: 1.8,
     hairlineOffset: -0.08
   },
+
   b: {
     widthMultiplier: 1.8,
     hairlineOffset: -0.08
   }
 };
+
+// ------------------------------------------------
+// HELPERS
+// ------------------------------------------------
 
 function smooth(previous, next, amount = 0.3) {
   return previous + (next - previous) * amount;
@@ -345,38 +568,77 @@ function updateSettings() {
   positionHair();
 }
 
+function setAdjustmentsOpen(open) {
+  adjustments.classList.toggle("open", open);
+
+  btnAdjust.setAttribute(
+    "aria-expanded",
+    String(open)
+  );
+
+  adjustArrow.textContent = open ? "−" : "+";
+}
+
+// ------------------------------------------------
+// HAIRSTYLE SELECTION
+// ------------------------------------------------
+
 function setStyle(key) {
   currentStyle = key;
 
   hair.src = key === "a" ? HAIR_A : HAIR_B;
-  hair.style.display = "block";
 
-  adjustments.style.display = "block";
+  btnAdjust.disabled = false;
+
+  btnA.classList.toggle("active", key === "a");
+  btnB.classList.toggle("active", key === "b");
 
   setSliders(key);
+
+  hair.style.display = "block";
+  hair.style.visibility = face ? "visible" : "hidden";
+
   positionHair();
 
   statusText.textContent =
-    "Tracking hairstyle. Adjust fit if needed.";
+    "Tracking hairstyle. Tap Adjust Hair to fine-tune.";
 }
 
+function clearStyle() {
+  currentStyle = null;
+
+  hair.style.display = "none";
+
+  btnA.classList.remove("active");
+  btnB.classList.remove("active");
+
+  btnAdjust.disabled = true;
+  setAdjustmentsOpen(false);
+
+  statusText.textContent = "Hairstyle cleared.";
+}
+
+// ------------------------------------------------
+// CAMERA COORDINATES
+// ------------------------------------------------
+
 function videoCoordinates(point) {
-  const boxWidth = box.clientWidth;
-  const boxHeight = box.clientHeight;
+  const mirrorWidth = mirror.clientWidth;
+  const mirrorHeight = mirror.clientHeight;
 
   const videoWidth = video.videoWidth || 640;
   const videoHeight = video.videoHeight || 480;
 
   const scale = Math.max(
-    boxWidth / videoWidth,
-    boxHeight / videoHeight
+    mirrorWidth / videoWidth,
+    mirrorHeight / videoHeight
   );
 
   const renderedWidth = videoWidth * scale;
   const renderedHeight = videoHeight * scale;
 
-  const cropX = (renderedWidth - boxWidth) / 2;
-  const cropY = (renderedHeight - boxHeight) / 2;
+  const cropX = (renderedWidth - mirrorWidth) / 2;
+  const cropY = (renderedHeight - mirrorHeight) / 2;
 
   return {
     x: (1 - point.x) * renderedWidth - cropX,
@@ -384,26 +646,35 @@ function videoCoordinates(point) {
   };
 }
 
-// Keep rotation close to upright.
-// Prevent mirrored landmarks from producing
-// a 180-degree upside-down hairstyle.
+// ------------------------------------------------
+// UPRIGHT HEAD TILT
+// ------------------------------------------------
+
 function calculateHeadTilt(leftEye, rightEye) {
   const dx = rightEye.x - leftEye.x;
   const dy = rightEye.y - leftEye.y;
 
   let angle = Math.atan2(dy, dx);
 
+  // Normalize the angle to avoid 180-degree flips.
   if (angle > Math.PI / 2) {
     angle -= Math.PI;
   } else if (angle < -Math.PI / 2) {
     angle += Math.PI;
   }
 
-  // Limit rotation to +/- 25 degrees.
-  const limit = 25 * Math.PI / 180;
+  // Prevent extreme hairstyle rotation.
+  const maxTilt = 25 * Math.PI / 180;
 
-  return Math.max(-limit, Math.min(limit, angle));
+  return Math.max(
+    -maxTilt,
+    Math.min(maxTilt, angle)
+  );
 }
+
+// ------------------------------------------------
+// POSITION HAIRSTYLE
+// ------------------------------------------------
 
 function positionHair() {
   if (!currentStyle || !face) return;
@@ -423,7 +694,10 @@ function positionHair() {
     rightSide.y - leftSide.y
   );
 
-  const headTilt = calculateHeadTilt(leftEye, rightEye);
+  const headTilt = calculateHeadTilt(
+    leftEye,
+    rightEye
+  );
 
   const sizeFactor = autoFit ? 1 : 0.95;
 
@@ -447,46 +721,28 @@ function positionHair() {
   const horizontalScale = s.width / 100;
 
   hair.style.transform =
-  "translate(-50%, -8%) scaleX(" +
-  horizontalScale + ")";
+    "translate(-50%, -8%) rotate(" +
+    headTilt + "rad) scaleX(" +
+    horizontalScale + ")";
 }
 
-// Sliders.
+// ------------------------------------------------
+// ADJUSTMENT CONTROLS
+// ------------------------------------------------
+
 sizeSlider.addEventListener("input", updateSettings);
 widthSlider.addEventListener("input", updateSettings);
 xSlider.addEventListener("input", updateSettings);
 ySlider.addEventListener("input", updateSettings);
 
-// Hairstyle selection.
-document.getElementById("btnA").onclick =
-  () => setStyle("a");
+btnAdjust.addEventListener("click", () => {
+  if (!currentStyle) return;
 
-document.getElementById("btnB").onclick =
-  () => setStyle("b");
+  const isOpen = adjustments.classList.contains("open");
 
-document.getElementById("btnClear").onclick = () => {
-  currentStyle = null;
-  hair.style.display = "none";
-  adjustments.style.display = "none";
-  statusText.textContent = "Hairstyle cleared.";
-};
+  setAdjustmentsOpen(!isOpen);
+});
 
-// Auto-fit.
-btnAuto.onclick = () => {
-  autoFit = !autoFit;
-
-  btnAuto.classList.toggle("active", autoFit);
-
-  statusText.textContent = autoFit
-    ? "Automatic fitting enabled."
-    : "Manual fitting enabled.";
-
-  positionHair();
-};
-
-btnAuto.classList.add("active");
-
-// Reset selected hairstyle.
 document.getElementById("btnResetFit").onclick = () => {
   if (!currentStyle) return;
 
@@ -500,34 +756,61 @@ document.getElementById("btnResetFit").onclick = () => {
   setSliders(currentStyle);
   positionHair();
 
-  statusText.textContent = "Fit reset.";
+  statusText.textContent = "Hair fit reset.";
 };
 
-// Reset entire mirror.
+// ------------------------------------------------
+// MAIN BUTTONS
+// ------------------------------------------------
+
+btnA.onclick = () => setStyle("a");
+btnB.onclick = () => setStyle("b");
+
+document.getElementById("btnClear").onclick =
+  clearStyle;
+
+btnAuto.onclick = () => {
+  autoFit = !autoFit;
+
+  btnAuto.classList.toggle("active", autoFit);
+
+  statusText.textContent = autoFit
+    ? "Automatic fitting enabled."
+    : "Manual size adjustment enabled.";
+
+  positionHair();
+};
+
+btnAuto.classList.add("active");
+
 document.getElementById("btnReset").onclick = () => {
   location.reload();
 };
 
-// Fullscreen.
 document.getElementById("btnFull").onclick = async () => {
   try {
     if (!document.fullscreenElement) {
-      await box.requestFullscreen();
+      await mirror.requestFullscreen();
     } else {
       await document.exitFullscreen();
     }
 
     positionHair();
+
   } catch (error) {
     statusText.textContent =
       "Fullscreen is not available.";
   }
 };
 
-// MediaPipe Face Mesh.
+// ------------------------------------------------
+// FACE TRACKING
+// ------------------------------------------------
+
 const mesh = new FaceMesh({
   locateFile: file =>
-    "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" + file
+    "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" +
+    file
 });
 
 mesh.setOptions({
@@ -569,9 +852,14 @@ mesh.onResults(results => {
   positionHair();
 });
 
-// Camera startup.
+// ------------------------------------------------
+// CAMERA STARTUP
+// ------------------------------------------------
+
 async function startCamera() {
-  if (cameraStarted) return;
+  if (cameraStarted || cameraStarting) return;
+
+  cameraStarting = true;
 
   startButton.disabled = true;
   startButton.textContent = "Starting...";
@@ -589,23 +877,50 @@ async function startCamera() {
 
     cameraStarted = true;
     startScreen.style.display = "none";
-    statusText.textContent = "Choose a hairstyle.";
+
+    statusText.textContent =
+      "Camera ready. Choose your hairstyle.";
 
   } catch (error) {
     console.error(error);
 
     startButton.disabled = false;
     startButton.textContent = "Try Again";
-    statusText.textContent = "Camera unavailable.";
 
-    alert("Please allow camera access and try again.");
+    statusText.textContent =
+      "Camera unavailable. Check camera permission.";
+
+    alert(
+      "Please allow camera access and try again."
+    );
+
+  } finally {
+    cameraStarting = false;
   }
 }
 
-startButton.addEventListener("click", startCamera);
+startButton.addEventListener(
+  "click",
+  startCamera
+);
 
-window.addEventListener("resize", positionHair);
+// ------------------------------------------------
+// RESPONSIVE RESIZING
+// ------------------------------------------------
+
+window.addEventListener(
+  "resize",
+  positionHair
+);
+
+document.addEventListener(
+  "fullscreenchange",
+  positionHair
+);
+
+updateLabels();
 
 </script>
+
 </body>
 </html>
