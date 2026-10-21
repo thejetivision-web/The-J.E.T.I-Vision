@@ -174,7 +174,7 @@ button.active {
     <div class="startSub">
       The Future of Hair Starts Here
     </div>
-    <button id="startButton">
+    <button id="startButton" type="button">
       Touch to Begin
     </button>
   </div>
@@ -188,14 +188,14 @@ button.active {
   <div class="controls">
 
     <div class="row">
-      <button id="btnA">Style A</button>
-      <button id="btnB">Style B</button>
-      <button id="btnClear">Clear</button>
+      <button id="btnA" type="button">Style A</button>
+      <button id="btnB" type="button">Style B</button>
+      <button id="btnClear" type="button">Clear</button>
     </div>
 
     <div class="row">
-      <button id="btnAuto">Auto Fit</button>
-      <button id="btnResetFit">Reset Fit</button>
+      <button id="btnAuto" type="button">Auto Fit</button>
+      <button id="btnResetFit" type="button">Reset Fit</button>
     </div>
 
     <div class="adjustments" id="adjustments">
@@ -207,6 +207,16 @@ button.active {
       <input id="sizeSlider"
         type="range"
         min="40"
+        max="180"
+        value="100">
+
+      <label>
+        Hair Width
+        <span id="widthValue">100%</span>
+      </label>
+      <input id="widthSlider"
+        type="range"
+        min="70"
         max="180"
         value="100">
 
@@ -233,13 +243,11 @@ button.active {
     </div>
 
     <div class="row">
-      <button id="btnFull">Fullscreen</button>
-      <button id="btnReset">Reset</button>
+      <button id="btnFull" type="button">Fullscreen</button>
+      <button id="btnReset" type="button">Reset</button>
     </div>
 
-    <div id="status">
-      Ready to begin
-    </div>
+    <div id="status">Ready to begin</div>
 
   </div>
 </div>
@@ -260,10 +268,10 @@ const status = document.getElementById("status");
 
 const startScreen = document.getElementById("startScreen");
 const startButton = document.getElementById("startButton");
-
 const adjustments = document.getElementById("adjustments");
 
 const sizeSlider = document.getElementById("sizeSlider");
+const widthSlider = document.getElementById("widthSlider");
 const xSlider = document.getElementById("xSlider");
 const ySlider = document.getElementById("ySlider");
 
@@ -273,16 +281,20 @@ let currentStyle = null;
 let camera = null;
 let cameraStarted = false;
 let autoFit = true;
-
 let face = null;
 
-const settings = {
-  a: { size: 100, x: 0, y: 0 },
-  b: { size: 100, x: 0, y: 0 }
+// Separate saved settings for each hairstyle.
+const defaults = {
+  a: { size: 121, width: 120, x: 0, y: 89 },
+  b: { size: 100, width: 100, x: 0, y: 0 }
 };
 
-// Adjust these if the source hairstyles
-// have different proportions.
+const settings = {
+  a: { ...defaults.a },
+  b: { ...defaults.b }
+};
+
+// Individual hairstyle proportions.
 const styleConfig = {
   a: {
     widthMultiplier: 1.8,
@@ -302,6 +314,9 @@ function updateLabels() {
   document.getElementById("sizeValue").textContent =
     sizeSlider.value + "%";
 
+  document.getElementById("widthValue").textContent =
+    widthSlider.value + "%";
+
   document.getElementById("xValue").textContent =
     xSlider.value;
 
@@ -313,6 +328,7 @@ function setSliders(key) {
   const s = settings[key];
 
   sizeSlider.value = s.size;
+  widthSlider.value = s.width;
   xSlider.value = s.x;
   ySlider.value = s.y;
 
@@ -324,6 +340,7 @@ function updateSettings() {
 
   settings[currentStyle] = {
     size: Number(sizeSlider.value),
+    width: Number(widthSlider.value),
     x: Number(xSlider.value),
     y: Number(ySlider.value)
   };
@@ -402,8 +419,7 @@ function positionHair() {
     (s.size / 100) *
     sizeFactor;
 
-  const x =
-    forehead.x + s.x;
+  const x = forehead.x + s.x;
 
   const y =
     forehead.y +
@@ -414,17 +430,22 @@ function positionHair() {
   hair.style.left = x + "px";
   hair.style.top = y + "px";
 
-  // Position image top near forehead.
-  // Rotate slightly with head tilt.
+  // Width changes independently of height.
+  const horizontalScale = s.width / 100;
+
   hair.style.transform =
     "translate(-50%, -8%) rotate(" +
-    eyeAngle + "rad)";
+    eyeAngle + "rad) scaleX(" +
+    horizontalScale + ")";
 }
 
+// Slider listeners.
 sizeSlider.addEventListener("input", updateSettings);
+widthSlider.addEventListener("input", updateSettings);
 xSlider.addEventListener("input", updateSettings);
 ySlider.addEventListener("input", updateSettings);
 
+// Hairstyle buttons.
 document.getElementById("btnA").onclick =
   () => setStyle("a");
 
@@ -438,6 +459,7 @@ document.getElementById("btnClear").onclick = () => {
   status.textContent = "Hairstyle cleared.";
 };
 
+// Auto-fit toggle.
 btnAuto.onclick = () => {
   autoFit = !autoFit;
   btnAuto.classList.toggle("active", autoFit);
@@ -451,13 +473,12 @@ btnAuto.onclick = () => {
 
 btnAuto.classList.add("active");
 
+// Reset the selected hairstyle to its defaults.
 document.getElementById("btnResetFit").onclick = () => {
   if (!currentStyle) return;
 
   settings[currentStyle] = {
-    size: 100,
-    x: 0,
-    y: 0
+    ...defaults[currentStyle]
   };
 
   autoFit = true;
@@ -473,6 +494,7 @@ document.getElementById("btnReset").onclick = () => {
   location.reload();
 };
 
+// Fullscreen.
 document.getElementById("btnFull").onclick =
   async () => {
     try {
@@ -481,6 +503,7 @@ document.getElementById("btnFull").onclick =
       } else {
         await document.exitFullscreen();
       }
+
       positionHair();
     } catch (error) {
       status.textContent =
@@ -488,6 +511,7 @@ document.getElementById("btnFull").onclick =
     }
   };
 
+// Face tracking.
 const mesh = new FaceMesh({
   locateFile: file =>
     "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" + file
@@ -532,6 +556,7 @@ mesh.onResults(results => {
   positionHair();
 });
 
+// Camera startup.
 async function startCamera() {
   if (cameraStarted) return;
 
@@ -555,9 +580,11 @@ async function startCamera() {
 
   } catch (error) {
     console.error(error);
+
     startButton.disabled = false;
     startButton.textContent = "Try Again";
     status.textContent = "Camera unavailable.";
+
     alert("Please allow camera access and try again.");
   }
 }
