@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>J.E.T.I. Vision | Smart Hair Try-On</title>
+<title>J.E.T.I. Vision | Virtual Hair Try-On</title>
 
 <style>
 * {
@@ -19,10 +19,10 @@ body {
   padding: 10px;
   background: #080808;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   font-family: "Segoe UI", Arial, sans-serif;
-  color: white;
+  color: #fff;
 }
 
 .box {
@@ -52,7 +52,7 @@ video {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 2px;
-  text-shadow: 0 2px 6px black;
+  text-shadow: 0 2px 6px #000;
 }
 
 #hair {
@@ -68,8 +68,8 @@ video {
 
 .controls {
   position: absolute;
-  left: 0;
   bottom: 0;
+  left: 0;
   width: 100%;
   padding: 14px 12px;
   padding-bottom: max(14px, env(safe-area-inset-bottom));
@@ -77,10 +77,12 @@ video {
     transparent,
     rgba(0,0,0,.96) 18%
   );
-  z-index: 90;
   display: flex;
   flex-direction: column;
   gap: 9px;
+  z-index: 90;
+  max-height: 70%;
+  overflow-y: auto;
 }
 
 .row {
@@ -162,6 +164,12 @@ button.active {
   padding: 13px 28px;
   font-size: 14px;
 }
+
+.box:fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  border-radius: 0;
+}
 </style>
 </head>
 
@@ -205,40 +213,28 @@ button.active {
         <span id="sizeValue">100%</span>
       </label>
       <input id="sizeSlider"
-        type="range"
-        min="40"
-        max="180"
-        value="100">
+        type="range" min="40" max="180" value="100">
 
       <label>
         Hair Width
         <span id="widthValue">100%</span>
       </label>
       <input id="widthSlider"
-        type="range"
-        min="70"
-        max="180"
-        value="100">
+        type="range" min="70" max="180" value="100">
 
       <label>
         Move Up / Down
         <span id="yValue">0</span>
       </label>
       <input id="ySlider"
-        type="range"
-        min="-200"
-        max="200"
-        value="0">
+        type="range" min="-200" max="200" value="0">
 
       <label>
         Move Left / Right
         <span id="xValue">0</span>
       </label>
       <input id="xSlider"
-        type="range"
-        min="-200"
-        max="200"
-        value="0">
+        type="range" min="-200" max="200" value="0">
 
     </div>
 
@@ -264,7 +260,7 @@ const HAIR_B = "./style-b.png";
 const box = document.getElementById("box");
 const video = document.getElementById("video");
 const hair = document.getElementById("hair");
-const status = document.getElementById("status");
+const statusText = document.getElementById("status");
 
 const startScreen = document.getElementById("startScreen");
 const startButton = document.getElementById("startButton");
@@ -283,7 +279,7 @@ let cameraStarted = false;
 let autoFit = true;
 let face = null;
 
-// Separate saved settings for each hairstyle.
+// Your previously tested Style A settings.
 const defaults = {
   a: { size: 121, width: 120, x: 0, y: 89 },
   b: { size: 100, width: 100, x: 0, y: 0 }
@@ -294,7 +290,7 @@ const settings = {
   b: { ...defaults.b }
 };
 
-// Individual hairstyle proportions.
+// Fine-tuning values for individual images.
 const styleConfig = {
   a: {
     widthMultiplier: 1.8,
@@ -353,14 +349,14 @@ function setStyle(key) {
   currentStyle = key;
 
   hair.src = key === "a" ? HAIR_A : HAIR_B;
-
   hair.style.display = "block";
+
   adjustments.style.display = "block";
 
   setSliders(key);
   positionHair();
 
-  status.textContent =
+  statusText.textContent =
     "Tracking hairstyle. Adjust fit if needed.";
 }
 
@@ -388,6 +384,27 @@ function videoCoordinates(point) {
   };
 }
 
+// Keep rotation close to upright.
+// Prevent mirrored landmarks from producing
+// a 180-degree upside-down hairstyle.
+function calculateHeadTilt(leftEye, rightEye) {
+  const dx = rightEye.x - leftEye.x;
+  const dy = rightEye.y - leftEye.y;
+
+  let angle = Math.atan2(dy, dx);
+
+  if (angle > Math.PI / 2) {
+    angle -= Math.PI;
+  } else if (angle < -Math.PI / 2) {
+    angle += Math.PI;
+  }
+
+  // Limit rotation to +/- 25 degrees.
+  const limit = 25 * Math.PI / 180;
+
+  return Math.max(-limit, Math.min(limit, angle));
+}
+
 function positionHair() {
   if (!currentStyle || !face) return;
 
@@ -406,10 +423,7 @@ function positionHair() {
     rightSide.y - leftSide.y
   );
 
-  const eyeAngle = Math.atan2(
-    rightEye.y - leftEye.y,
-    rightEye.x - leftEye.x
-  );
+  const headTilt = calculateHeadTilt(leftEye, rightEye);
 
   const sizeFactor = autoFit ? 1 : 0.95;
 
@@ -430,22 +444,21 @@ function positionHair() {
   hair.style.left = x + "px";
   hair.style.top = y + "px";
 
-  // Width changes independently of height.
   const horizontalScale = s.width / 100;
 
   hair.style.transform =
     "translate(-50%, -8%) rotate(" +
-    eyeAngle + "rad) scaleX(" +
+    headTilt + "rad) scaleX(" +
     horizontalScale + ")";
 }
 
-// Slider listeners.
+// Sliders.
 sizeSlider.addEventListener("input", updateSettings);
 widthSlider.addEventListener("input", updateSettings);
 xSlider.addEventListener("input", updateSettings);
 ySlider.addEventListener("input", updateSettings);
 
-// Hairstyle buttons.
+// Hairstyle selection.
 document.getElementById("btnA").onclick =
   () => setStyle("a");
 
@@ -456,15 +469,16 @@ document.getElementById("btnClear").onclick = () => {
   currentStyle = null;
   hair.style.display = "none";
   adjustments.style.display = "none";
-  status.textContent = "Hairstyle cleared.";
+  statusText.textContent = "Hairstyle cleared.";
 };
 
-// Auto-fit toggle.
+// Auto-fit.
 btnAuto.onclick = () => {
   autoFit = !autoFit;
+
   btnAuto.classList.toggle("active", autoFit);
 
-  status.textContent = autoFit
+  statusText.textContent = autoFit
     ? "Automatic fitting enabled."
     : "Manual fitting enabled.";
 
@@ -473,7 +487,7 @@ btnAuto.onclick = () => {
 
 btnAuto.classList.add("active");
 
-// Reset the selected hairstyle to its defaults.
+// Reset selected hairstyle.
 document.getElementById("btnResetFit").onclick = () => {
   if (!currentStyle) return;
 
@@ -487,31 +501,31 @@ document.getElementById("btnResetFit").onclick = () => {
   setSliders(currentStyle);
   positionHair();
 
-  status.textContent = "Fit reset.";
+  statusText.textContent = "Fit reset.";
 };
 
+// Reset entire mirror.
 document.getElementById("btnReset").onclick = () => {
   location.reload();
 };
 
 // Fullscreen.
-document.getElementById("btnFull").onclick =
-  async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await box.requestFullscreen();
-      } else {
-        await document.exitFullscreen();
-      }
-
-      positionHair();
-    } catch (error) {
-      status.textContent =
-        "Fullscreen is not available.";
+document.getElementById("btnFull").onclick = async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await box.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
     }
-  };
 
-// Face tracking.
+    positionHair();
+  } catch (error) {
+    statusText.textContent =
+      "Fullscreen is not available.";
+  }
+};
+
+// MediaPipe Face Mesh.
 const mesh = new FaceMesh({
   locateFile: file =>
     "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" + file
@@ -576,14 +590,14 @@ async function startCamera() {
 
     cameraStarted = true;
     startScreen.style.display = "none";
-    status.textContent = "Choose a hairstyle.";
+    statusText.textContent = "Choose a hairstyle.";
 
   } catch (error) {
     console.error(error);
 
     startButton.disabled = false;
     startButton.textContent = "Try Again";
-    status.textContent = "Camera unavailable.";
+    statusText.textContent = "Camera unavailable.";
 
     alert("Please allow camera access and try again.");
   }
