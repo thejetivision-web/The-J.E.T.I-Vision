@@ -4,129 +4,129 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The J.E.T.I. Vision | Virtual Hair Try-On</title>
+
+<title>J.E.T.I. Vision | Smart Hair Try-On</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
+  padding: 10px;
   background: #080808;
   display: flex;
   justify-content: center;
   align-items: center;
   font-family: "Segoe UI", Arial, sans-serif;
   color: white;
-  padding: 12px;
 }
 
 .box {
   position: relative;
   width: min(100%, 390px);
-  height: min(720px, calc(100dvh - 24px));
+  height: min(720px, calc(100dvh - 20px));
   min-height: 420px;
-  background: #111;
   overflow: hidden;
   border-radius: 24px;
-  border: 1px solid #604957;
+  background: #111;
+  border: 1px solid #634653;
 }
 
 video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1);
-  display: block;
 }
 
 .brand {
   position: absolute;
   top: 18px;
-  left: 20px;
-  font-size: 15px;
-  letter-spacing: 2px;
-  font-weight: 600;
+  left: 18px;
   z-index: 40;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 2px;
   text-shadow: 0 2px 6px black;
 }
 
 #hair {
   position: absolute;
   display: none;
-  width: 220px;
+  width: 200px;
   height: auto;
   max-width: none;
   pointer-events: none;
+  transform-origin: 50% 50%;
   z-index: 50;
-  transform: translate(-50%, -50%);
-  transform-origin: center center;
 }
 
 .controls {
   position: absolute;
-  bottom: 0;
   left: 0;
+  bottom: 0;
   width: 100%;
-  padding: 18px 12px;
-  padding-bottom: max(18px, env(safe-area-inset-bottom));
+  padding: 14px 12px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
   background: linear-gradient(
     transparent,
-    rgba(0,0,0,.92) 25%
+    rgba(0,0,0,.96) 18%
   );
+  z-index: 90;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  z-index: 90;
+  gap: 9px;
 }
 
 .row {
   display: flex;
   gap: 7px;
-  justify-content: center;
-  width: 100%;
 }
 
 button {
   flex: 1;
   min-width: 0;
-  padding: 11px 7px;
+  padding: 11px 6px;
+  border: 0;
   border-radius: 22px;
-  border: none;
-  background: #f5e5ec;
-  color: #21151b;
+  background: #f5e4ec;
+  color: #241820;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
 
-button:active {
-  background: #dba9c0;
+button.active {
+  background: #dba3be;
 }
 
 .adjustments {
-  background: rgba(20,20,20,.8);
-  padding: 10px;
-  border-radius: 12px;
   display: none;
+  padding: 10px;
+  background: rgba(20,20,20,.86);
+  border-radius: 13px;
 }
 
 .adjustments label {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  margin: 7px 0 3px;
+  margin: 7px 0 4px;
 }
 
 .adjustments input {
   width: 100%;
-  accent-color: #dba9c0;
+  accent-color: #dfa9c4;
 }
 
 #status {
-  font-size: 11px;
   text-align: center;
+  font-size: 11px;
   color: #eee;
   min-height: 14px;
 }
@@ -134,35 +134,34 @@ button:active {
 #startScreen {
   position: absolute;
   inset: 0;
-  background: #090909;
+  z-index: 200;
+  background: #080808;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 200;
   text-align: center;
   padding: 25px;
 }
 
 .startTitle {
-  font-size: 32px;
-  letter-spacing: 5px;
+  font-size: 36px;
+  letter-spacing: 6px;
   font-weight: 600;
 }
 
 .startSub {
-  margin-top: 14px;
-  opacity: .8;
+  margin-top: 15px;
   font-size: 14px;
+  opacity: .8;
 }
 
 #startButton {
   flex: none;
   margin-top: 28px;
-  padding: 13px 30px;
+  padding: 13px 28px;
   font-size: 14px;
 }
-
 </style>
 </head>
 
@@ -175,19 +174,14 @@ button:active {
     <div class="startSub">
       The Future of Hair Starts Here
     </div>
-    <button id="startButton" type="button">
+    <button id="startButton">
       Touch to Begin
     </button>
   </div>
 
   <div class="brand">J.E.T.I. VISION</div>
 
-  <video
-    id="video"
-    autoplay
-    muted
-    playsinline>
-  </video>
+  <video id="video" autoplay muted playsinline></video>
 
   <img id="hair" alt="Virtual hairstyle">
 
@@ -199,25 +193,28 @@ button:active {
       <button id="btnClear">Clear</button>
     </div>
 
+    <div class="row">
+      <button id="btnAuto">Auto Fit</button>
+      <button id="btnResetFit">Reset Fit</button>
+    </div>
+
     <div class="adjustments" id="adjustments">
 
       <label>
         Hair Size
         <span id="sizeValue">100%</span>
       </label>
-      <input
-        id="sizeSlider"
+      <input id="sizeSlider"
         type="range"
-        min="30"
-        max="250"
+        min="40"
+        max="180"
         value="100">
 
       <label>
         Move Up / Down
         <span id="yValue">0</span>
       </label>
-      <input
-        id="ySlider"
+      <input id="ySlider"
         type="range"
         min="-200"
         max="200"
@@ -227,8 +224,7 @@ button:active {
         Move Left / Right
         <span id="xValue">0</span>
       </label>
-      <input
-        id="xSlider"
+      <input id="xSlider"
         type="range"
         min="-200"
         max="200"
@@ -241,16 +237,18 @@ button:active {
       <button id="btnReset">Reset</button>
     </div>
 
-    <div id="status"></div>
+    <div id="status">
+      Ready to begin
+    </div>
 
   </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 
 <script>
+"use strict";
 
 const HAIR_A = "./style-a.png";
 const HAIR_B = "./style-b.png";
@@ -258,6 +256,7 @@ const HAIR_B = "./style-b.png";
 const box = document.getElementById("box");
 const video = document.getElementById("video");
 const hair = document.getElementById("hair");
+const status = document.getElementById("status");
 
 const startScreen = document.getElementById("startScreen");
 const startButton = document.getElementById("startButton");
@@ -268,21 +267,36 @@ const sizeSlider = document.getElementById("sizeSlider");
 const xSlider = document.getElementById("xSlider");
 const ySlider = document.getElementById("ySlider");
 
-const status = document.getElementById("status");
+const btnAuto = document.getElementById("btnAuto");
 
 let currentStyle = null;
 let camera = null;
 let cameraStarted = false;
-let tracking = false;
+let autoFit = true;
 
-let faceX = 0.5;
-let faceY = 0.3;
-let faceWidth = 0.35;
+let face = null;
 
 const settings = {
   a: { size: 100, x: 0, y: 0 },
   b: { size: 100, x: 0, y: 0 }
 };
+
+// Adjust these if the source hairstyles
+// have different proportions.
+const styleConfig = {
+  a: {
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  },
+  b: {
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  }
+};
+
+function smooth(previous, next, amount = 0.3) {
+  return previous + (next - previous) * amount;
+}
 
 function updateLabels() {
   document.getElementById("sizeValue").textContent =
@@ -293,6 +307,16 @@ function updateLabels() {
 
   document.getElementById("yValue").textContent =
     ySlider.value;
+}
+
+function setSliders(key) {
+  const s = settings[key];
+
+  sizeSlider.value = s.size;
+  xSlider.value = s.x;
+  ySlider.value = s.y;
+
+  updateLabels();
 }
 
 function updateSettings() {
@@ -312,30 +336,21 @@ function setStyle(key) {
   currentStyle = key;
 
   hair.src = key === "a" ? HAIR_A : HAIR_B;
-  hair.style.display = "block";
 
+  hair.style.display = "block";
   adjustments.style.display = "block";
 
-  const s = settings[key];
-
-  sizeSlider.value = s.size;
-  xSlider.value = s.x;
-  ySlider.value = s.y;
-
-  updateLabels();
+  setSliders(key);
   positionHair();
+
+  status.textContent =
+    "Tracking hairstyle. Adjust fit if needed.";
 }
 
-function positionHair() {
-  if (!currentStyle) return;
-
-  const s = settings[currentStyle];
-
+function videoCoordinates(point) {
   const boxWidth = box.clientWidth;
   const boxHeight = box.clientHeight;
 
-  // Convert the tracked camera position into
-  // the displayed, cropped and mirrored video.
   const videoWidth = video.videoWidth || 640;
   const videoHeight = video.videoHeight || 480;
 
@@ -344,31 +359,66 @@ function positionHair() {
     boxHeight / videoHeight
   );
 
-  const displayedWidth = videoWidth * scale;
-  const displayedHeight = videoHeight * scale;
+  const renderedWidth = videoWidth * scale;
+  const renderedHeight = videoHeight * scale;
 
-  const cropX = (displayedWidth - boxWidth) / 2;
-  const cropY = (displayedHeight - boxHeight) / 2;
+  const cropX = (renderedWidth - boxWidth) / 2;
+  const cropY = (renderedHeight - boxHeight) / 2;
 
-  const px = faceX * displayedWidth - cropX;
-  const py = faceY * displayedHeight - cropY;
+  return {
+    x: (1 - point.x) * renderedWidth - cropX,
+    y: point.y * renderedHeight - cropY
+  };
+}
 
-  const facePixels = faceWidth * displayedWidth;
+function positionHair() {
+  if (!currentStyle || !face) return;
 
-  // Initial hair size relative to face width.
+  const s = settings[currentStyle];
+  const config = styleConfig[currentStyle];
+
+  const forehead = videoCoordinates(face.forehead);
+  const leftSide = videoCoordinates(face.leftSide);
+  const rightSide = videoCoordinates(face.rightSide);
+
+  const leftEye = videoCoordinates(face.leftEye);
+  const rightEye = videoCoordinates(face.rightEye);
+
+  const faceWidth = Math.hypot(
+    rightSide.x - leftSide.x,
+    rightSide.y - leftSide.y
+  );
+
+  const eyeAngle = Math.atan2(
+    rightEye.y - leftEye.y,
+    rightEye.x - leftEye.x
+  );
+
+  const sizeFactor = autoFit ? 1 : 0.95;
+
   const hairWidth =
-    facePixels * 1.8 * (s.size / 100);
+    faceWidth *
+    config.widthMultiplier *
+    (s.size / 100) *
+    sizeFactor;
+
+  const x =
+    forehead.x + s.x;
+
+  const y =
+    forehead.y +
+    faceWidth * config.hairlineOffset +
+    s.y;
 
   hair.style.width = hairWidth + "px";
+  hair.style.left = x + "px";
+  hair.style.top = y + "px";
 
-  hair.style.left =
-    (px + s.x) + "px";
-
-  hair.style.top =
-    (py + s.y) + "px";
-
+  // Position image top near forehead.
+  // Rotate slightly with head tilt.
   hair.style.transform =
-    "translate(-50%, -50%)";
+    "translate(-50%, -8%) rotate(" +
+    eyeAngle + "rad)";
 }
 
 sizeSlider.addEventListener("input", updateSettings);
@@ -385,15 +435,42 @@ document.getElementById("btnClear").onclick = () => {
   currentStyle = null;
   hair.style.display = "none";
   adjustments.style.display = "none";
+  status.textContent = "Hairstyle cleared.";
+};
+
+btnAuto.onclick = () => {
+  autoFit = !autoFit;
+  btnAuto.classList.toggle("active", autoFit);
+
+  status.textContent = autoFit
+    ? "Automatic fitting enabled."
+    : "Manual fitting enabled.";
+
+  positionHair();
+};
+
+btnAuto.classList.add("active");
+
+document.getElementById("btnResetFit").onclick = () => {
+  if (!currentStyle) return;
+
+  settings[currentStyle] = {
+    size: 100,
+    x: 0,
+    y: 0
+  };
+
+  autoFit = true;
+  btnAuto.classList.add("active");
+
+  setSliders(currentStyle);
+  positionHair();
+
+  status.textContent = "Fit reset.";
 };
 
 document.getElementById("btnReset").onclick = () => {
-  settings.a = { size: 100, x: 0, y: 0 };
-  settings.b = { size: 100, x: 0, y: 0 };
-
-  if (currentStyle) {
-    setStyle(currentStyle);
-  }
+  location.reload();
 };
 
 document.getElementById("btnFull").onclick =
@@ -424,40 +501,34 @@ mesh.setOptions({
 });
 
 mesh.onResults(results => {
-
-  if (!results.multiFaceLandmarks ||
-      !results.multiFaceLandmarks.length) {
-    tracking = false;
+  if (!results.multiFaceLandmarks?.length) {
+    face = null;
+    hair.style.visibility = "hidden";
     return;
   }
 
-  tracking = true;
+  const landmarks = results.multiFaceLandmarks[0];
 
-  const points = results.multiFaceLandmarks[0];
+  const nextFace = {
+    forehead: landmarks[10],
+    leftSide: landmarks[234],
+    rightSide: landmarks[454],
+    leftEye: landmarks[33],
+    rightEye: landmarks[263]
+  };
 
-  // Forehead landmark.
-  const forehead = points[10];
+  if (!face) {
+    face = nextFace;
+  } else {
+    for (const key of Object.keys(nextFace)) {
+      face[key] = {
+        x: smooth(face[key].x, nextFace[key].x),
+        y: smooth(face[key].y, nextFace[key].y)
+      };
+    }
+  }
 
-  // Side landmarks approximate face width.
-  const leftSide = points[234];
-  const rightSide = points[454];
-
-  if (!forehead || !leftSide || !rightSide) return;
-
-  // Mirror the tracking coordinates to match
-  // the mirrored camera display.
-  const targetX = 1 - forehead.x;
-  const targetY = forehead.y;
-
-  const targetWidth =
-    Math.abs(rightSide.x - leftSide.x);
-
-  faceX = faceX * 0.65 + targetX * 0.35;
-  faceY = faceY * 0.65 + targetY * 0.35;
-
-  faceWidth =
-    faceWidth * 0.65 + targetWidth * 0.35;
-
+  hair.style.visibility = "visible";
   positionHair();
 });
 
@@ -468,11 +539,6 @@ async function startCamera() {
   startButton.textContent = "Starting...";
 
   try {
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
-      throw new Error("Camera not supported");
-    }
-
     camera = new Camera(video, {
       onFrame: async () => {
         await mesh.send({ image: video });
@@ -485,21 +551,14 @@ async function startCamera() {
 
     cameraStarted = true;
     startScreen.style.display = "none";
-
-    status.textContent =
-      "Choose a hairstyle to begin.";
+    status.textContent = "Choose a hairstyle.";
 
   } catch (error) {
+    console.error(error);
     startButton.disabled = false;
     startButton.textContent = "Try Again";
-
     status.textContent = "Camera unavailable.";
-
-    alert(
-      "Unable to start camera. Please allow camera access."
-    );
-
-    console.error(error);
+    alert("Please allow camera access and try again.");
   }
 }
 
@@ -508,6 +567,5 @@ startButton.addEventListener("click", startCamera);
 window.addEventListener("resize", positionHair);
 
 </script>
-
 </body>
 </html>
