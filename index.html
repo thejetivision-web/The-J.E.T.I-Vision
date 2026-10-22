@@ -331,19 +331,29 @@ const presets = {
     widthMultiplier: 1.8,
     hairlineOffset: -0.08
   },
- b: {
-  image: "./style-b.png",
-  size: 96,
-  width: 128,
-  x: 0,
-  y: -11,
-  widthMultiplier: 1.8,
-  hairlineOffset: -0.08
-}
+b: {
+    image: "./style-b.png",
+    size: 96,
+    width: 128,
+    x: 0,
+    y: -11,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  },
+  c: {
+    image: "./style-c.png",
+    size: 90,
+    width: 94,
+    x: -4,
+    y: -65,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  }
 };
 
 // Slider settings are saved separately
 // for each hairstyle.
+
 const settings = {
   a: {
     size: presets.a.size,
@@ -356,6 +366,12 @@ const settings = {
     width: presets.b.width,
     x: presets.b.x,
     y: presets.b.y
+  },
+  c: {
+    size: presets.c.size,
+    width: presets.c.width,
+    x: presets.c.x,
+    y: presets.c.y
   }
 };
 
