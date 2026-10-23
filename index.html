@@ -450,7 +450,8 @@ function selectStyle(key) {
 
   btnA.classList.toggle("active", key === "a");
   btnB.classList.toggle("active", key === "b");
-
+  btnC.classList.toggle("active", key === "c");
+  
   loadSliders(key);
   positionHair();
 
@@ -465,6 +466,7 @@ function clearStyle() {
 
   btnA.classList.remove("active");
   btnB.classList.remove("active");
+  btnC.classList.remove("active");
 
   btnAdjust.disabled = true;
   toggleAdjustments(false);
