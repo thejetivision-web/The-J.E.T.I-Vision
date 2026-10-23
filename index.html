@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -206,13 +207,23 @@ button:disabled{
   <section class="panel">
     <div class="heading">EXPLORE YOUR LOOK</div>
 
-<div class="buttons">
-  <button id="btnA">Blonde Waves</button>
-  <button id="btnB">Goddess Braids</button>
-  <button id="btnC">Pixie Cut</button>
-  <button id="btnClear">Clear</button>
-</div>
+    <div class="buttons">
+      <button id="btnA">Blonde Waves</button>
+      <button id="btnB">Goddess Braids</button>
+      <button id="btnC">Pixie Cut</button>
+      <button id="btnClear">Clear</button>
+    </div>
 
+    <div class="heading" style="margin-top:16px">
+      MEN'S HAIRCUTS
+    </div>
+
+    <div class="buttons">
+      <button id="btnM1">Low Taper Fade</button>
+      <button id="btnM2">360 Waves</button>
+      <button id="btnM3">Textured Crop</button>
+      <button id="btnM4">Classic Side Part</button>
+    </div>
 
     <div class="buttons">
       <button id="btnAuto" class="active">Auto Fit</button>
@@ -303,9 +314,14 @@ const ySlider = $("ySlider");
 const btnA = $("btnA");
 const btnB = $("btnB");
 const btnC = $("btnC");
+
+const btnM1 = $("btnM1");
+const btnM2 = $("btnM2");
+const btnM3 = $("btnM3");
+const btnM4 = $("btnM4");
+
 const btnAuto = $("btnAuto");
 const btnAdjust = $("btnAdjust");
-
 
 let currentStyle = null;
 let camera = null;
@@ -313,39 +329,34 @@ let cameraStarted = false;
 let cameraStarting = false;
 let face = null;
 
-// Auto Fit starts ON.
-// Manual adjustments can be applied afterward.
 let autoFit = true;
-
-// Your successful settings are the
-// starting calibration for Style A.
-//
-// REFERENCE_FACE_WIDTH is an estimate.
-// It can be fine-tuned after camera testing.
 
 const REFERENCE_FACE_WIDTH = 150;
 
-const presets = {
- 
-a: {
-  image: "./style-a.png",
-  size: 157,
-  width: 118,
-  x: -4,
-  y: -37,
-  widthMultiplier: 1.8,
-  hairlineOffset: -0.08
-},
+// ========================================
+// HAIRSTYLE PRESETS
+// ========================================
 
-b: {
-  image: "./style-b.png?v=2",
-  size: 96,
-  width: 128,
-  x: 13,
-  y: -11,
-  widthMultiplier: 1.8,
-  hairlineOffset: -0.08
-},
+const presets = {
+  a: {
+    image: "./style-a.png",
+    size: 157,
+    width: 118,
+    x: -4,
+    y: -37,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  },
+
+  b: {
+    image: "./style-b.png?v=2",
+    size: 96,
+    width: 128,
+    x: 13,
+    y: -11,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  },
 
   c: {
     image: "./style-c.png",
@@ -355,32 +366,62 @@ b: {
     y: -65,
     widthMultiplier: 1.8,
     hairlineOffset: -0.08
+  },
+
+  m1: {
+    image: "./style-m1.png?v=1",
+    size: 100,
+    width: 100,
+    x: 0,
+    y: -10,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  },
+
+  m2: {
+    image: "./style-m2.png?v=1",
+    size: 100,
+    width: 100,
+    x: 0,
+    y: -10,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  },
+
+  m3: {
+    image: "./style-m3.png?v=1",
+    size: 100,
+    width: 100,
+    x: 0,
+    y: -10,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  },
+
+  m4: {
+    image: "./style-m4.png?v=1",
+    size: 100,
+    width: 100,
+    x: 0,
+    y: -10,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
   }
 };
 
-// Slider settings are saved separately
-// for each hairstyle.
+// Separate adjustment settings for each style.
+const settings = {};
 
-const settings = {
-  a: {
-    size: presets.a.size,
-    width: presets.a.width,
-    x: presets.a.x,
-    y: presets.a.y
-  },
-  b: {
-    size: presets.b.size,
-    width: presets.b.width,
-    x: presets.b.x,
-    y: presets.b.y
-  },
-  c: {
-    size: presets.c.size,
-    width: presets.c.width,
-    x: presets.c.x,
-    y: presets.c.y
-  }
-};
+for (const key of Object.keys(presets)) {
+  const p = presets[key];
+
+  settings[key] = {
+    size: p.size,
+    width: p.width,
+    x: p.x,
+    y: p.y
+  };
+}
 
 // ========================================
 // DISPLAY HELPERS
@@ -418,7 +459,6 @@ function saveSliders() {
     y: Number(ySlider.value)
   };
 
-  // Sliders become fine-tuning controls.
   autoFit = false;
   btnAuto.classList.remove("active");
 
@@ -431,10 +471,12 @@ function saveSliders() {
 
 function toggleAdjustments(open) {
   $("adjustments").classList.toggle("open", open);
+
   btnAdjust.setAttribute(
     "aria-expanded",
     String(open)
   );
+
   $("arrow").textContent = open ? "−" : "+";
 }
 
@@ -454,7 +496,12 @@ function selectStyle(key) {
   btnA.classList.toggle("active", key === "a");
   btnB.classList.toggle("active", key === "b");
   btnC.classList.toggle("active", key === "c");
-  
+
+  btnM1.classList.toggle("active", key === "m1");
+  btnM2.classList.toggle("active", key === "m2");
+  btnM3.classList.toggle("active", key === "m3");
+  btnM4.classList.toggle("active", key === "m4");
+
   loadSliders(key);
   positionHair();
 
@@ -471,6 +518,11 @@ function clearStyle() {
   btnB.classList.remove("active");
   btnC.classList.remove("active");
 
+  btnM1.classList.remove("active");
+  btnM2.classList.remove("active");
+  btnM3.classList.remove("active");
+  btnM4.classList.remove("active");
+
   btnAdjust.disabled = true;
   toggleAdjustments(false);
 
@@ -480,9 +532,6 @@ function clearStyle() {
 // ========================================
 // FACE LANDMARK COORDINATES
 // ========================================
-
-// Match MediaPipe coordinates to the
-// mirrored, cropped camera display.
 
 function videoCoordinates(point) {
   const mw = mirror.clientWidth;
@@ -508,9 +557,6 @@ function videoCoordinates(point) {
 // ========================================
 // SAFE HEAD ROTATION
 // ========================================
-
-// Keep hair upright, including when
-// mirrored eye positions reverse direction.
 
 function headTilt(leftEye, rightEye) {
   const dx = rightEye.x - leftEye.x;
@@ -548,7 +594,6 @@ function positionHair() {
   const leftEye = videoCoordinates(face.leftEye);
   const rightEye = videoCoordinates(face.rightEye);
 
-  // Measure current face width.
   const faceWidth = Math.hypot(
     rightTemple.x - leftTemple.x,
     rightTemple.y - leftTemple.y
@@ -559,20 +604,16 @@ function positionHair() {
     return;
   }
 
-  // Scale reference offsets to the face.
-  // This replaces fixed pixel offsets.
   const faceScale =
     faceWidth / REFERENCE_FACE_WIDTH;
 
   const values = autoFit ? preset : s;
 
-  // Hairstyle width follows face size.
   const hairWidth =
     faceWidth *
     preset.widthMultiplier *
     (values.size / 100);
 
-  // Position offsets adapt to face width.
   const xOffset = values.x * faceScale;
   const yOffset = values.y * faceScale;
 
@@ -610,7 +651,12 @@ ySlider.addEventListener("input", saveSliders);
 btnA.onclick = () => selectStyle("a");
 btnB.onclick = () => selectStyle("b");
 btnC.onclick = () => selectStyle("c");
-  
+
+btnM1.onclick = () => selectStyle("m1");
+btnM2.onclick = () => selectStyle("m2");
+btnM3.onclick = () => selectStyle("m3");
+btnM4.onclick = () => selectStyle("m4");
+
 $("btnClear").onclick = clearStyle;
 
 btnAdjust.onclick = () => {
@@ -621,9 +667,6 @@ btnAdjust.onclick = () => {
 
   toggleAdjustments(!open);
 };
-
-// Auto Fit restores the style's calibrated
-// values, then continues tracking.
 
 btnAuto.onclick = () => {
   autoFit = true;
