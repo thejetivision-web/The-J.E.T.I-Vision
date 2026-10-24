@@ -354,6 +354,89 @@ let autoFit = true;
 
 const REFERENCE_FACE_WIDTH = 150;
 
+ // J.E.T.I. Adaptive Lighting
+const lightingCanvas = document.createElement("canvas");
+lightingCanvas.width = 32;
+lightingCanvas.height = 32;
+
+const lightingCtx = lightingCanvas.getContext(
+  "2d",
+  { willReadFrequently: true }
+);
+
+let lastLightingCheck = 0;
+
+function updateHairLighting() {
+  if (
+    !currentStyle ||
+    !cameraStarted ||
+    !video.videoWidth ||
+    !lightingCtx
+  ) return;
+
+  const now = performance.now();
+
+  // Sample approximately five times per second.
+  if (now - lastLightingCheck < 200) return;
+  lastLightingCheck = now;
+
+  lightingCtx.drawImage(video, 0, 0, 32, 32);
+
+  const pixels = lightingCtx.getImageData(
+    0, 0, 32, 32
+  ).data;
+
+  let brightnessTotal = 0;
+  let redTotal = 0;
+  let blueTotal = 0;
+  let count = 0;
+
+  // Sample the center region rather than
+  // the entire room background.
+  for (let y = 8; y < 24; y += 2) {
+    for (let x = 8; x < 24; x += 2) {
+      const i = (y * 32 + x) * 4;
+
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+
+      brightnessTotal +=
+        0.2126 * r +
+        0.7152 * g +
+        0.0722 * b;
+
+      redTotal += r;
+      blueTotal += b;
+      count++;
+    }
+  }
+
+  const brightness = brightnessTotal / count;
+  const averageRed = redTotal / count;
+  const averageBlue = blueTotal / count;
+
+  // Conservative adjustments preserve
+  // the original hairstyle colors.
+  const brightnessFactor = Math.max(
+    0.82,
+    Math.min(1.12, 0.95 + (brightness - 115) / 500)
+  );
+
+  const warmth = averageRed - averageBlue;
+
+  const warmthFactor = Math.max(
+    -0.08,
+    Math.min(0.08, warmth / 600)
+  );
+
+  hair.style.filter = `
+    brightness(${brightnessFactor})
+    contrast(0.98)
+    saturate(${1 + warmthFactor})
+  `;
+}
+
 // ========================================
 // HAIRSTYLE PRESETS
 // ========================================
