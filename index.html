@@ -41,7 +41,6 @@ video{
   transform:scaleX(-1);
   display:block;
 }
-
 #hair{
   position:absolute;
   display:none;
@@ -50,26 +49,6 @@ video{
   pointer-events:none;
   transform-origin:center;
   z-index:5;
-
-  -webkit-mask-image:
-    radial-gradient(
-      ellipse 68% 72% at 50% 43%,
-      black 65%,
-      rgba(0,0,0,0.85) 83%,
-      transparent 100%
-    );
-
-  mask-image:
-    radial-gradient(
-      ellipse 68% 72% at 50% 43%,
-      black 65%,
-      rgba(0,0,0,0.85) 83%,
-      transparent 100%
-    );
-
-  filter: brightness(0.97) contrast(0.98);
-}
-
 }
 .brand{
   position:absolute;
@@ -316,7 +295,7 @@ button:disabled{
 "use strict";
 
 // ========================================
-// J.E.T.I. VISION V3.1
+// J.E.T.I. VISION V3.2 — M4 CURVED FIT
 // SMART LANDMARK-BASED AUTO FIT
 // ========================================
 
@@ -354,87 +333,158 @@ let autoFit = true;
 
 const REFERENCE_FACE_WIDTH = 150;
 
- // J.E.T.I. Adaptive Lighting
-const lightingCanvas = document.createElement("canvas");
-lightingCanvas.width = 32;
-lightingCanvas.height = 32;
+// ========================================
+// M4 CURVED FIT
+// ========================================
 
-const lightingCtx = lightingCanvas.getContext(
-  "2d",
-  { willReadFrequently: true }
-);
+// This warps only the Classic Side Part image.
+// All other hairstyles retain their original fitting.
 
-let lastLightingCheck = 0;
+const m4Original = new Image();
+let m4Loaded = false;
+let m4WarpKey = "";
 
-function updateHairLighting() {
+const warpPass = document.createElement("canvas");
+const warpOutput = document.createElement("canvas");
+
+m4Original.onload = () => {
+  m4Loaded = true;
+  m4WarpKey = "";
+
+  if (currentStyle === "m4") {
+    applyM4Warp();
+    positionHair();
+  }
+};
+
+m4Original.onerror = () => {
+  statusText.textContent =
+    "M4 image could not load. Check style-m4.png.";
+};
+
+m4Original.src = "./style-m4.png?v=10";
+
+function applyM4Warp() {
   if (
-    !currentStyle ||
-    !cameraStarted ||
-    !video.videoWidth ||
-    !lightingCtx
+    currentStyle !== "m4" ||
+    !m4Loaded ||
+    !face
   ) return;
 
-  const now = performance.now();
+  const templeL = videoCoordinates(face.leftTemple);
+  const templeR = videoCoordinates(face.rightTemple);
 
-  // Sample approximately five times per second.
-  if (now - lastLightingCheck < 200) return;
-  lastLightingCheck = now;
+  const foreheadL = videoCoordinates(face.foreheadLeft);
+  const foreheadR = videoCoordinates(face.foreheadRight);
 
-  lightingCtx.drawImage(video, 0, 0, 32, 32);
+  const templeWidth = Math.abs(
+    templeR.x - templeL.x
+  );
 
-  const pixels = lightingCtx.getImageData(
-    0, 0, 32, 32
-  ).data;
+  const upperWidth = Math.abs(
+    foreheadR.x - foreheadL.x
+  );
 
-  let brightnessTotal = 0;
-  let redTotal = 0;
-  let blueTotal = 0;
-  let count = 0;
+  if (templeWidth < 10) return;
 
-  // Sample the center region rather than
-  // the entire room background.
-  for (let y = 8; y < 24; y += 2) {
-    for (let x = 8; x < 24; x += 2) {
-      const i = (y * 32 + x) * 4;
+  // Use forehead-to-temple proportions
+  // to determine the amount of curvature.
 
-      const r = pixels[i];
-      const g = pixels[i + 1];
-      const b = pixels[i + 2];
+  const ratio = upperWidth / templeWidth;
 
-      brightnessTotal +=
-        0.2126 * r +
-        0.7152 * g +
-        0.0722 * b;
+  const taper = Math.max(
+    0.06,
+    Math.min(
+      0.16,
+      0.13 - (ratio - 0.65) * 0.12
+    )
+  );
 
-      redTotal += r;
-      blueTotal += b;
-      count++;
-    }
+  const curve = Math.max(
+    0.012,
+    Math.min(
+      0.045,
+      0.025 + (0.7 - ratio) * 0.025
+    )
+  );
+
+  const key =
+    `${Math.round(taper * 100)}-` +
+    `${Math.round(curve * 1000)}`;
+
+  if (key === m4WarpKey) return;
+
+  m4WarpKey = key;
+
+  const w = m4Original.naturalWidth;
+  const h = m4Original.naturalHeight;
+
+  warpPass.width = w;
+  warpPass.height = h;
+
+  warpOutput.width = w;
+  warpOutput.height = h;
+
+  const a = warpPass.getContext("2d");
+  const b = warpOutput.getContext("2d");
+
+  a.clearRect(0, 0, w, h);
+  b.clearRect(0, 0, w, h);
+
+  // PASS 1: Taper the lower sides inward.
+
+  const rows = 100;
+
+  for (let i = 0; i < rows; i++) {
+    const sy = i * h / rows;
+    const sh = Math.min(
+      h - sy,
+      h / rows + 0.6
+    );
+
+    const t = sy / h;
+
+    const widthFactor =
+      1 - taper * Math.pow(t, 1.7);
+
+    const dw = w * widthFactor;
+
+    a.drawImage(
+      m4Original,
+      0, sy, w, sh,
+      (w - dw) / 2,
+      sy,
+      dw,
+      sh
+    );
   }
 
-  const brightness = brightnessTotal / count;
-  const averageRed = redTotal / count;
-  const averageBlue = blueTotal / count;
+  // PASS 2: Add a gentle forehead curve.
 
-  // Conservative adjustments preserve
-  // the original hairstyle colors.
-  const brightnessFactor = Math.max(
-    0.82,
-    Math.min(1.12, 0.95 + (brightness - 115) / 500)
-  );
+  const cols = 140;
 
-  const warmth = averageRed - averageBlue;
+  for (let i = 0; i < cols; i++) {
+    const sx = i * w / cols;
+    const sw = Math.min(
+      w - sx,
+      w / cols + 0.65
+    );
 
-  const warmthFactor = Math.max(
-    -0.08,
-    Math.min(0.08, warmth / 600)
-  );
+    const x =
+      (sx + sw / 2 - w / 2) / (w / 2);
 
-  hair.style.filter = `
-    brightness(${brightnessFactor})
-    contrast(0.98)
-    saturate(${1 + warmthFactor})
-  `;
+    const shift =
+      h * curve * Math.max(0, 1 - x * x);
+
+    b.drawImage(
+      warpPass,
+      sx, 0, sw, h,
+      sx, shift, sw, h - shift
+    );
+  }
+
+  // Preserve the image's alpha transparency.
+  hair.src = warpOutput.toDataURL("image/png");
 }
 
 // ========================================
@@ -501,20 +551,22 @@ const presets = {
     widthMultiplier: 1.8,
     hairlineOffset: -0.08
   },
-  
-m4: {
-  image: "./style-m4.png?v=4",
-  size: 83,
-  width: 96,
-  x: 0,
-  y: -86,
-  widthMultiplier: 1.8,
-  hairlineOffset: -0.08
-}
 
+  m4: {
+    image: "./style-m4.png?v=10",
+    size: 83,
+    width: 96,
+    x: 0,
+    y: -86,
+    widthMultiplier: 1.8,
+    hairlineOffset: -0.08
+  }
 };
 
-// Separate adjustment settings for each style.
+// ========================================
+// SEPARATE SETTINGS FOR EACH HAIRSTYLE
+// ========================================
+
 const settings = {};
 
 for (const key of Object.keys(presets)) {
@@ -567,22 +619,26 @@ function saveSliders() {
   autoFit = false;
   btnAuto.classList.remove("active");
 
+  updateLabels();
   positionHair();
-  updateHairLighting();
-  
+
   statusText.textContent =
     "Custom fit active. Tracking continues.";
 }
 
 function toggleAdjustments(open) {
-  $("adjustments").classList.toggle("open", open);
+  $("adjustments").classList.toggle(
+    "open",
+    open
+  );
 
   btnAdjust.setAttribute(
     "aria-expanded",
     String(open)
   );
 
-  $("arrow").textContent = open ? "−" : "+";
+  $("arrow").textContent =
+    open ? "−" : "+";
 }
 
 // ========================================
@@ -593,8 +649,14 @@ function selectStyle(key) {
   currentStyle = key;
 
   hair.src = presets[key].image;
+
+  if (key === "m4") {
+    m4WarpKey = "";
+  }
+
   hair.style.display = "block";
-  hair.style.visibility = face ? "visible" : "hidden";
+  hair.style.visibility =
+    face ? "visible" : "hidden";
 
   btnAdjust.disabled = false;
 
@@ -631,7 +693,8 @@ function clearStyle() {
   btnAdjust.disabled = true;
   toggleAdjustments(false);
 
-  statusText.textContent = "Hairstyle cleared.";
+  statusText.textContent =
+    "Hairstyle cleared.";
 }
 
 // ========================================
@@ -645,7 +708,10 @@ function videoCoordinates(point) {
   const vw = video.videoWidth || 640;
   const vh = video.videoHeight || 480;
 
-  const scale = Math.max(mw / vw, mh / vh);
+  const scale = Math.max(
+    mw / vw,
+    mh / vh
+  );
 
   const rw = vw * scale;
   const rh = vh * scale;
@@ -679,7 +745,10 @@ function headTilt(leftEye, rightEye) {
 
   const limit = 25 * Math.PI / 180;
 
-  return Math.max(-limit, Math.min(limit, angle));
+  return Math.max(
+    -limit,
+    Math.min(limit, angle)
+  );
 }
 
 // ========================================
@@ -689,22 +758,37 @@ function headTilt(leftEye, rightEye) {
 function positionHair() {
   if (!currentStyle || !face) return;
 
+  if (currentStyle === "m4") {
+    applyM4Warp();
+  }
+
   const preset = presets[currentStyle];
   const s = settings[currentStyle];
 
-  const forehead = videoCoordinates(face.forehead);
-  const leftTemple = videoCoordinates(face.leftTemple);
-  const rightTemple = videoCoordinates(face.rightTemple);
+  const forehead =
+    videoCoordinates(face.forehead);
 
-  const leftEye = videoCoordinates(face.leftEye);
-  const rightEye = videoCoordinates(face.rightEye);
+  const leftTemple =
+    videoCoordinates(face.leftTemple);
+
+  const rightTemple =
+    videoCoordinates(face.rightTemple);
+
+  const leftEye =
+    videoCoordinates(face.leftEye);
+
+  const rightEye =
+    videoCoordinates(face.rightEye);
 
   const faceWidth = Math.hypot(
     rightTemple.x - leftTemple.x,
     rightTemple.y - leftTemple.y
   );
 
-  if (!Number.isFinite(faceWidth) || faceWidth < 10) {
+  if (
+    !Number.isFinite(faceWidth) ||
+    faceWidth < 10
+  ) {
     hair.style.visibility = "hidden";
     return;
   }
@@ -729,7 +813,11 @@ function positionHair() {
     faceWidth * preset.hairlineOffset +
     yOffset;
 
-  const angle = headTilt(leftEye, rightEye);
+  const angle = headTilt(
+    leftEye,
+    rightEye
+  );
+
   const stretchX = values.width / 100;
 
   hair.style.width = hairWidth + "px";
@@ -748,10 +836,25 @@ function positionHair() {
 // CONTROLS
 // ========================================
 
-sizeSlider.addEventListener("input", saveSliders);
-widthSlider.addEventListener("input", saveSliders);
-xSlider.addEventListener("input", saveSliders);
-ySlider.addEventListener("input", saveSliders);
+sizeSlider.addEventListener(
+  "input",
+  saveSliders
+);
+
+widthSlider.addEventListener(
+  "input",
+  saveSliders
+);
+
+xSlider.addEventListener(
+  "input",
+  saveSliders
+);
+
+ySlider.addEventListener(
+  "input",
+  saveSliders
+);
 
 btnA.onclick = () => selectStyle("a");
 btnB.onclick = () => selectStyle("b");
@@ -768,7 +871,9 @@ btnAdjust.onclick = () => {
   if (!currentStyle) return;
 
   const open =
-    $("adjustments").classList.contains("open");
+    $("adjustments").classList.contains(
+      "open"
+    );
 
   toggleAdjustments(!open);
 };
@@ -830,6 +935,7 @@ $("btnFull").onclick = async () => {
     }
 
     positionHair();
+
   } catch (error) {
     statusText.textContent =
       "Fullscreen is unavailable.";
@@ -846,6 +952,7 @@ function smoothPoint(oldPoint, newPoint) {
   return {
     x: oldPoint.x +
        (newPoint.x - oldPoint.x) * amount,
+
     y: oldPoint.y +
        (newPoint.y - oldPoint.y) * amount
   };
@@ -880,14 +987,21 @@ mesh.onResults(results => {
     leftTemple: lm[234],
     rightTemple: lm[454],
     leftEye: lm[33],
-    rightEye: lm[263]
+    rightEye: lm[263],
+
+    // Additional points for M4 curved fitting.
+    foreheadLeft: lm[71],
+    foreheadRight: lm[301]
   };
 
   if (!face) {
     face = next;
   } else {
     for (const key of Object.keys(next)) {
-      face[key] = smoothPoint(face[key], next[key]);
+      face[key] = smoothPoint(
+        face[key],
+        next[key]
+      );
     }
   }
 
@@ -899,7 +1013,9 @@ mesh.onResults(results => {
 // ========================================
 
 async function startCamera() {
-  if (cameraStarted || cameraStarting) return;
+  if (cameraStarted || cameraStarting) {
+    return;
+  }
 
   cameraStarting = true;
 
@@ -911,6 +1027,7 @@ async function startCamera() {
       onFrame: async () => {
         await mesh.send({ image: video });
       },
+
       width: 640,
       height: 480
     });
@@ -918,6 +1035,7 @@ async function startCamera() {
     await camera.start();
 
     cameraStarted = true;
+
     $("startScreen").style.display = "none";
 
     statusText.textContent =
@@ -942,7 +1060,10 @@ $("startButton").addEventListener(
   startCamera
 );
 
-window.addEventListener("resize", positionHair);
+window.addEventListener(
+  "resize",
+  positionHair
+);
 
 document.addEventListener(
   "fullscreenchange",
