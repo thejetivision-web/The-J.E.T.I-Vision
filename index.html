@@ -41,6 +41,7 @@ video{
   transform:scaleX(-1);
   display:block;
 }
+
 #hair{
   position:absolute;
   display:none;
@@ -49,6 +50,26 @@ video{
   pointer-events:none;
   transform-origin:center;
   z-index:5;
+
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 68% 72% at 50% 43%,
+      black 65%,
+      rgba(0,0,0,0.85) 83%,
+      transparent 100%
+    );
+
+  mask-image:
+    radial-gradient(
+      ellipse 68% 72% at 50% 43%,
+      black 65%,
+      rgba(0,0,0,0.85) 83%,
+      transparent 100%
+    );
+
+  filter: brightness(0.97) contrast(0.98);
+}
+
 }
 .brand{
   position:absolute;
