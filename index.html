@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>J.E.T.I. Vision | Smart Auto Fit</title>
+<title>J.E.T.I. Vision | Curved Fit Prototype</title>
 <style>
 *{box-sizing:border-box}
 :root{--pink:#dba3be;--pale:#f5e4ec}
@@ -106,8 +106,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script>
 "use strict";
 
-// J.E.T.I. VISION V3.3
-// Face tracking, curved M4, stability and image checks.
+// J.E.T.I. VISION V3.4 — experimental curved fitting for all 7 styles.
+// Keeps the v3.3 controls, face tracking and individual fitting presets.
 
 const $ = id => document.getElementById(id);
 const mirror = $("mirror");
@@ -175,25 +175,26 @@ for(const key of Object.keys(presets)){
   settings[key]={size:p.size,width:p.width,x:p.x,y:p.y};
 }
 
-// Classic Side Part curved image fitting.
-const m4Original = new Image();
-let m4Loaded = false;
-let m4WarpKey = "";
+// Cache the original transparent PNG for each hairstyle.
+// Never repeatedly warp an already-warped image.
+const originals = {};
+const warpKeys = {};
 const warpPass = document.createElement("canvas");
 const warpOutput = document.createElement("canvas");
-
-m4Original.onload = () => {
-  m4Loaded=true;
-  m4WarpKey="";
-  if(currentStyle==="m4"){
-    applyM4Warp();
-    positionHair();
-  }
-};
-m4Original.onerror=()=>{
-  statusText.textContent="M4 image could not load. Check style-m4.png.";
-};
-m4Original.src="./style-m4.png?v=10";
+for (const [key,preset] of Object.entries(presets)) {
+  const img = new Image();
+  originals[key] = img;
+  warpKeys[key] = "";
+  img.onload = () => {
+    warpKeys[key] = "";
+    if (currentStyle === key) positionHair();
+  };
+  img.onerror = () => {
+    if (currentStyle === key) statusText.textContent =
+      "Image missing: " + preset.image.split("?")[0];
+  };
+  img.src = preset.image;
+}
 
 function videoCoordinates(point){
   const mw=mirror.clientWidth;
@@ -211,63 +212,64 @@ function videoCoordinates(point){
   };
 }
 
-function applyM4Warp(){
-  if(currentStyle!=="m4"||!m4Loaded||!face)return;
+function applyCurvedFit(key){
+  const original = originals[key];
+  if (!face || !original || !original.complete || !original.naturalWidth) return;
 
-  const templeL=videoCoordinates(face.leftTemple);
-  const templeR=videoCoordinates(face.rightTemple);
-  const foreheadL=videoCoordinates(face.foreheadLeft);
-  const foreheadR=videoCoordinates(face.foreheadRight);
+  const templeL = videoCoordinates(face.leftTemple);
+  const templeR = videoCoordinates(face.rightTemple);
+  const foreheadL = videoCoordinates(face.foreheadLeft);
+  const foreheadR = videoCoordinates(face.foreheadRight);
+  const templeWidth = Math.abs(templeR.x - templeL.x);
+  if (templeWidth < 10) return;
 
-  const templeWidth=Math.abs(templeR.x-templeL.x);
-  const upperWidth=Math.abs(foreheadR.x-foreheadL.x);
-  if(templeWidth<10)return;
+  const ratio = Math.max(.35, Math.min(1.05,
+    Math.abs(foreheadR.x - foreheadL.x) / templeWidth));
+  const isLong = key === "a" || key === "b";
+  // Long styles get less side taper to preserve their length and volume.
+  const taper = Math.max(.025, Math.min(isLong ? .075 : .16,
+    (isLong ? .06 : .13) - (ratio - .65) * .08));
+  const curve = Math.max(.01, Math.min(isLong ? .025 : .045,
+    (isLong ? .018 : .025) + (.7 - ratio) * .025));
 
-  const ratio=upperWidth/templeWidth;
-  const taper=Math.max(0.06,Math.min(0.16,
-    0.13-(ratio-0.65)*0.12));
-  const curve=Math.max(0.012,Math.min(0.045,
-    0.025+(0.7-ratio)*0.025));
+  // Quantization prevents unnecessary canvas rendering on every video frame.
+  const keyForShape = `${Math.round(taper*100)}-${Math.round(curve*1000)}`;
+  if (warpKeys[key] === keyForShape) return;
 
-  const key=`${Math.round(taper*100)}-${Math.round(curve*1000)}`;
-  if(key===m4WarpKey)return;
-  m4WarpKey=key;
+  const w = original.naturalWidth, h = original.naturalHeight;
+  // Cap processing resolution to avoid huge canvas memory allocations.
+  const scale = Math.min(1, 900 / Math.max(w,h));
+  const cw = Math.max(1, Math.round(w*scale));
+  const ch = Math.max(1, Math.round(h*scale));
+  warpPass.width = warpOutput.width = cw;
+  warpPass.height = warpOutput.height = ch;
+  const a = warpPass.getContext("2d");
+  const b = warpOutput.getContext("2d");
+  a.clearRect(0,0,cw,ch);
+  b.clearRect(0,0,cw,ch);
 
-  const w=m4Original.naturalWidth;
-  const h=m4Original.naturalHeight;
-  warpPass.width=w;
-  warpPass.height=h;
-  warpOutput.width=w;
-  warpOutput.height=h;
-
-  const a=warpPass.getContext("2d");
-  const b=warpOutput.getContext("2d");
-  a.clearRect(0,0,w,h);
-  b.clearRect(0,0,w,h);
-
-  // Taper lower sides inward.
-  const rows=100;
+  const rows = 100;
   for(let i=0;i<rows;i++){
-    const sy=i*h/rows;
-    const sh=Math.min(h-sy,h/rows+0.6);
-    const t=sy/h;
-    const widthFactor=1-taper*Math.pow(t,1.7);
-    const dw=w*widthFactor;
-    a.drawImage(m4Original,0,sy,w,sh,
-      (w-dw)/2,sy,dw,sh);
+    const sy=i*ch/rows;
+    const sh=Math.min(ch-sy,ch/rows+.6);
+    const t=sy/ch;
+    const factor=1-taper*Math.pow(t,1.7);
+    const dw=cw*factor;
+    a.drawImage(original,0,sy/scale,w,sh/scale,
+      (cw-dw)/2,sy,dw,sh);
   }
-
-  // Curve the upper forehead region.
   const cols=140;
   for(let i=0;i<cols;i++){
-    const sx=i*w/cols;
-    const sw=Math.min(w-sx,w/cols+0.65);
-    const x=(sx+sw/2-w/2)/(w/2);
-    const shift=h*curve*Math.max(0,1-x*x);
-    b.drawImage(warpPass,sx,0,sw,h,
-      sx,shift,sw,h-shift);
+    const sx=i*cw/cols;
+    const sw=Math.min(cw-sx,cw/cols+.65);
+    const x=(sx+sw/2-cw/2)/(cw/2);
+    const shift=ch*curve*Math.max(0,1-x*x);
+    b.drawImage(warpPass,sx,0,sw,ch,sx,shift,sw,ch-shift);
   }
+  // A transparent PNG stays transparent through both canvas passes.
+  // Set the cache key only after rendering succeeds.
   hair.src=warpOutput.toDataURL("image/png");
+  warpKeys[key]=keyForShape;
 }
 
 function updateLabels(){
@@ -319,13 +321,11 @@ function selectStyle(key){
 
   testImage.onload=()=>{
     if(requestId!==activeImageRequest||currentStyle!==key)return;
-    if(key!=="m4"){
-      hair.src=requestedImage;
-    }else{
-      m4WarpKey="";
-      if(m4Loaded&&face)applyM4Warp();
-      else hair.src=requestedImage;
-    }
+    // Start with the unmodified PNG; switch to a curved version once
+    // face landmarks and the original image are available.
+    hair.src=requestedImage;
+    warpKeys[key]="";
+    if(face) applyCurvedFit(key);
     hair.style.display="block";
     positionHair();
   };
@@ -374,7 +374,7 @@ function headTilt(leftEye,rightEye){
 function positionHair(){
   if(!currentStyle||!face)return;
 
-  if(currentStyle==="m4")applyM4Warp();
+  applyCurvedFit(currentStyle);
 
   const preset=presets[currentStyle];
   const s=settings[currentStyle];
