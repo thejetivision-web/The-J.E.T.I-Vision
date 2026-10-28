@@ -5,1073 +5,573 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>J.E.T.I. Vision | Smart Auto Fit</title>
-
 <style>
 *{box-sizing:border-box}
-:root{
-  --pink:#dba3be;
-  --pale:#f5e4ec;
-  --dark:#101010;
-}
-body{
-  margin:0;
-  background:#080808;
-  color:white;
-  font-family:Arial,sans-serif;
-}
-.app{
-  width:min(100%,480px);
-  margin:auto;
-  padding:12px 12px 30px;
-}
-.mirror{
-  position:relative;
-  width:100%;
-  aspect-ratio:3/4;
-  overflow:hidden;
-  background:#181818;
-  border:1px solid #684a5a;
-  border-radius:22px;
-  isolation:isolate;
-}
-video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  transform:scaleX(-1);
-  display:block;
-}
-#hair{
-  position:absolute;
-  display:none;
-  max-width:none;
-  height:auto;
-  pointer-events:none;
-  transform-origin:center;
-  z-index:5;
-}
-.brand{
-  position:absolute;
-  top:14px;
-  left:14px;
-  z-index:10;
-  letter-spacing:2px;
-  font-weight:bold;
-  font-size:13px;
-  text-shadow:0 2px 6px black;
-}
-.start{
-  position:absolute;
-  inset:0;
-  z-index:20;
-  background:#101010;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:20px;
-  text-align:center;
-  padding:20px;
-}
-.start h1{
-  letter-spacing:6px;
-  font-size:34px;
-  margin:0;
-}
-.start p{
-  font-size:13px;
-  color:#ddd;
-  margin:0;
-}
-button{
-  border:0;
-  background:var(--pale);
-  color:#261923;
-  font-weight:bold;
-  cursor:pointer;
-  border-radius:22px;
-  padding:12px 8px;
-  font-size:12px;
-}
-button.active{
-  background:var(--pink);
-}
-button:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
-.start button{
-  padding:14px 30px;
-  background:var(--pink);
-}
-.panel{
-  margin-top:14px;
-  background:#171417;
-  border:1px solid #322630;
-  border-radius:20px;
-  padding:14px;
-}
-.heading{
-  color:#c7b8c1;
-  font-size:11px;
-  letter-spacing:2px;
-  margin-bottom:12px;
-}
-.buttons{
-  display:flex;
-  gap:8px;
-  margin-bottom:9px;
-}
-.buttons button{
-  flex:1;
-  min-width:0;
-}
-.toggle{
-  width:100%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#30222b;
-  color:white;
-  border:1px solid #775267;
-  border-radius:12px;
-  margin-top:6px;
-  padding:13px;
-}
-.adjustments{
-  display:none;
-  background:#211b20;
-  border-radius:13px;
-  margin-top:12px;
-  padding:14px;
-}
-.adjustments.open{
-  display:block;
-}
-.slider{
-  margin-bottom:16px;
-}
-.slider label{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:8px;
-  font-size:12px;
-}
-.slider input{
-  width:100%;
-  accent-color:var(--pink);
-}
-.status{
-  text-align:center;
-  color:#cfc2ca;
-  font-size:12px;
-  padding:12px 2px 0;
-  min-height:30px;
-}
-.footer{
-  text-align:center;
-  color:#9e8b97;
-  font-size:11px;
-  letter-spacing:2px;
-  padding-top:20px;
-}
-.mirror:fullscreen{
-  width:100vw;
-  height:100dvh;
-  aspect-ratio:auto;
-  border:0;
-  border-radius:0;
-}
-@media(min-width:700px){
-  .app{width:min(100%,560px)}
-  .mirror{aspect-ratio:4/5}
-}
+:root{--pink:#dba3be;--pale:#f5e4ec}
+body{margin:0;background:#080808;color:white;font-family:Arial,sans-serif}
+.app{width:min(100%,480px);margin:auto;padding:12px 12px 30px}
+.mirror{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:#181818;border:1px solid #684a5a;border-radius:22px;isolation:isolate}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+#hair{position:absolute;display:none;max-width:none;height:auto;pointer-events:none;transform-origin:center;z-index:5}
+.brand{position:absolute;top:14px;left:14px;z-index:10;letter-spacing:2px;font-weight:bold;font-size:13px;text-shadow:0 2px 6px black}
+.start{position:absolute;inset:0;z-index:20;background:#101010;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:20px}
+.start h1{letter-spacing:6px;font-size:34px;margin:0}
+.start p{font-size:13px;color:#ddd;margin:0}
+button{border:0;background:var(--pale);color:#261923;font-weight:bold;cursor:pointer;border-radius:22px;padding:12px 8px;font-size:12px}
+button.active,.start button{background:var(--pink)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.start button{padding:14px 30px}
+.panel{margin-top:14px;background:#171417;border:1px solid #322630;border-radius:20px;padding:14px}
+.heading{color:#c7b8c1;font-size:11px;letter-spacing:2px;margin-bottom:12px}
+.buttons{display:flex;gap:8px;margin-bottom:9px}
+.buttons button{flex:1;min-width:0}
+.toggle{width:100%;display:flex;justify-content:space-between;align-items:center;background:#30222b;color:white;border:1px solid #775267;border-radius:12px;margin-top:6px;padding:13px}
+.adjustments{display:none;background:#211b20;border-radius:13px;margin-top:12px;padding:14px}
+.adjustments.open{display:block}
+.slider{margin-bottom:16px}
+.slider label{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px}
+.slider input{width:100%;accent-color:var(--pink)}
+.status{text-align:center;color:#cfc2ca;font-size:12px;padding:12px 2px 0;min-height:30px}
+.footer{text-align:center;color:#9e8b97;font-size:11px;letter-spacing:2px;padding-top:20px}
+.mirror:fullscreen{width:100vw;height:100dvh;aspect-ratio:auto;border:0;border-radius:0}
+@media(min-width:700px){.app{width:min(100%,560px)}.mirror{aspect-ratio:4/5}}
 </style>
 </head>
-
 <body>
 <main class="app">
+<div class="mirror" id="mirror">
+  <video id="video" autoplay muted playsinline></video>
+  <img id="hair" alt="Virtual hairstyle">
+  <div class="brand">J.E.T.I. VISION</div>
+  <div class="start" id="startScreen">
+    <h1>J.E.T.I.</h1>
+    <p>The Future of Hair Starts Here</p>
+    <button id="startButton">Touch to Begin</button>
+  </div>
+</div>
 
-  <div class="mirror" id="mirror">
-    <video id="video" autoplay muted playsinline></video>
-    <img id="hair" alt="Virtual hairstyle">
-    <div class="brand">J.E.T.I. VISION</div>
-
-    <div class="start" id="startScreen">
-      <h1>J.E.T.I.</h1>
-      <p>The Future of Hair Starts Here</p>
-      <button id="startButton">Touch to Begin</button>
-    </div>
+<section class="panel">
+  <div class="heading">EXPLORE YOUR LOOK</div>
+  <div class="buttons">
+    <button id="btnA">Blonde Waves</button>
+    <button id="btnB">Goddess Braids</button>
+    <button id="btnC">Pixie Cut</button>
+    <button id="btnClear">Clear</button>
   </div>
 
-  <section class="panel">
-    <div class="heading">EXPLORE YOUR LOOK</div>
+  <div class="heading" style="margin-top:16px">MEN'S HAIRCUTS</div>
+  <div class="buttons">
+    <button id="btnM1">Low Taper Fade</button>
+    <button id="btnM2">360 Waves</button>
+    <button id="btnM3">Textured Crop</button>
+    <button id="btnM4">Classic Side Part</button>
+  </div>
 
-    <div class="buttons">
-      <button id="btnA">Blonde Waves</button>
-      <button id="btnB">Goddess Braids</button>
-      <button id="btnC">Pixie Cut</button>
-      <button id="btnClear">Clear</button>
+  <div class="buttons">
+    <button id="btnAuto" class="active">Auto Fit</button>
+    <button id="btnFull">Fullscreen</button>
+    <button id="btnReset">Reset</button>
+  </div>
+
+  <button id="btnAdjust" class="toggle" aria-expanded="false" aria-controls="adjustments" disabled>
+    <span>Adjust Hair</span><span id="arrow">+</span>
+  </button>
+
+  <div class="adjustments" id="adjustments">
+    <div class="slider">
+      <label for="sizeSlider">Hair Size <span id="sizeValue">100%</span></label>
+      <input id="sizeSlider" type="range" min="40" max="200" value="100">
     </div>
-
-    <div class="heading" style="margin-top:16px">
-      MEN'S HAIRCUTS
+    <div class="slider">
+      <label for="widthSlider">Hair Width <span id="widthValue">100%</span></label>
+      <input id="widthSlider" type="range" min="70" max="180" value="100">
     </div>
-
-    <div class="buttons">
-      <button id="btnM1">Low Taper Fade</button>
-      <button id="btnM2">360 Waves</button>
-      <button id="btnM3">Textured Crop</button>
-      <button id="btnM4">Classic Side Part</button>
+    <div class="slider">
+      <label for="ySlider">Move Up / Down <span id="yValue">0</span></label>
+      <input id="ySlider" type="range" min="-200" max="200" value="0">
     </div>
-
-    <div class="buttons">
-      <button id="btnAuto" class="active">Auto Fit</button>
-      <button id="btnFull">Fullscreen</button>
-      <button id="btnReset">Reset</button>
+    <div class="slider">
+      <label for="xSlider">Move Left / Right <span id="xValue">0</span></label>
+      <input id="xSlider" type="range" min="-200" max="200" value="0">
     </div>
-
-    <button id="btnAdjust"
-            class="toggle"
-            aria-expanded="false"
-            aria-controls="adjustments"
-            disabled>
-      <span>Adjust Hair</span>
-      <span id="arrow">+</span>
-    </button>
-
-    <div class="adjustments" id="adjustments">
-
-      <div class="slider">
-        <label for="sizeSlider">
-          Hair Size <span id="sizeValue">100%</span>
-        </label>
-        <input id="sizeSlider" type="range"
-               min="40" max="200" value="100">
-      </div>
-
-      <div class="slider">
-        <label for="widthSlider">
-          Hair Width <span id="widthValue">100%</span>
-        </label>
-        <input id="widthSlider" type="range"
-               min="70" max="180" value="100">
-      </div>
-
-      <div class="slider">
-        <label for="ySlider">
-          Move Up / Down <span id="yValue">0</span>
-        </label>
-        <input id="ySlider" type="range"
-               min="-200" max="200" value="0">
-      </div>
-
-      <div class="slider">
-        <label for="xSlider">
-          Move Left / Right <span id="xValue">0</span>
-        </label>
-        <input id="xSlider" type="range"
-               min="-200" max="200" value="0">
-      </div>
-
-      <div class="buttons">
-        <button id="btnResetFit">Reset Hair Fit</button>
-      </div>
-
-    </div>
-
-    <div class="status" id="status">
-      Ready to begin
-    </div>
-  </section>
-
-  <div class="footer">THE J.E.T.I. VISION</div>
+    <div class="buttons"><button id="btnResetFit">Reset Hair Fit</button></div>
+  </div>
+  <div class="status" id="status">Ready to begin</div>
+</section>
+<div class="footer">THE J.E.T.I. VISION</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-
 <script>
 "use strict";
 
-// ========================================
-// J.E.T.I. VISION V3.2 — M4 CURVED FIT
-// SMART LANDMARK-BASED AUTO FIT
-// ========================================
+// J.E.T.I. VISION V3.3
+// Face tracking, curved M4, stability and image checks.
 
 const $ = id => document.getElementById(id);
-
 const mirror = $("mirror");
 const video = $("video");
 const hair = $("hair");
 const statusText = $("status");
-
 const sizeSlider = $("sizeSlider");
 const widthSlider = $("widthSlider");
 const xSlider = $("xSlider");
 const ySlider = $("ySlider");
-
-const btnA = $("btnA");
-const btnB = $("btnB");
-const btnC = $("btnC");
-
-const btnM1 = $("btnM1");
-const btnM2 = $("btnM2");
-const btnM3 = $("btnM3");
-const btnM4 = $("btnM4");
-
 const btnAuto = $("btnAuto");
 const btnAdjust = $("btnAdjust");
+
+const styleButtons = {
+  a:$("btnA"),b:$("btnB"),c:$("btnC"),
+  m1:$("btnM1"),m2:$("btnM2"),
+  m3:$("btnM3"),m4:$("btnM4")
+};
 
 let currentStyle = null;
 let camera = null;
 let cameraStarted = false;
 let cameraStarting = false;
 let face = null;
-
+let missingFrames = 0;
+let activeImageRequest = 0;
 let autoFit = true;
 
 const REFERENCE_FACE_WIDTH = 150;
 
-// ========================================
-// M4 CURVED FIT
-// ========================================
+const presets = {
+  a:{
+    image:"./style-a.png",size:157,width:118,
+    x:-4,y:-37,widthMultiplier:1.8,hairlineOffset:-0.08
+  },
+  b:{
+    image:"./style-b.png?v=2",size:96,width:128,
+    x:13,y:-11,widthMultiplier:1.8,hairlineOffset:-0.08
+  },
+  c:{
+    image:"./style-c.png",size:90,width:94,
+    x:-4,y:-65,widthMultiplier:1.8,hairlineOffset:-0.08
+  },
+  m1:{
+    image:"./style-m1.png?v=3",size:75,width:100,
+    x:8,y:-41,widthMultiplier:1.8,hairlineOffset:-0.08
+  },
+  m2:{
+    image:"./style-m2.png?v=3",size:77,width:96,
+    x:24,y:-74,widthMultiplier:1.8,hairlineOffset:-0.08
+  },
+  m3:{
+    image:"./style-m3.png?v=3",size:83,width:95,
+    x:2,y:-61,widthMultiplier:1.8,hairlineOffset:-0.08
+  },
+  m4:{
+    image:"./style-m4.png?v=10",size:83,width:96,
+    x:0,y:-86,widthMultiplier:1.8,hairlineOffset:-0.08
+  }
+};
 
-// This warps only the Classic Side Part image.
-// All other hairstyles retain their original fitting.
+const settings = {};
+for(const key of Object.keys(presets)){
+  const p=presets[key];
+  settings[key]={size:p.size,width:p.width,x:p.x,y:p.y};
+}
 
+// Classic Side Part curved image fitting.
 const m4Original = new Image();
 let m4Loaded = false;
 let m4WarpKey = "";
-
 const warpPass = document.createElement("canvas");
 const warpOutput = document.createElement("canvas");
 
 m4Original.onload = () => {
-  m4Loaded = true;
-  m4WarpKey = "";
-
-  if (currentStyle === "m4") {
+  m4Loaded=true;
+  m4WarpKey="";
+  if(currentStyle==="m4"){
     applyM4Warp();
     positionHair();
   }
 };
-
-m4Original.onerror = () => {
-  statusText.textContent =
-    "M4 image could not load. Check style-m4.png.";
+m4Original.onerror=()=>{
+  statusText.textContent="M4 image could not load. Check style-m4.png.";
 };
-
-m4Original.src = "./style-m4.png?v=10";
-
-function applyM4Warp() {
-  if (
-    currentStyle !== "m4" ||
-    !m4Loaded ||
-    !face
-  ) return;
-
-  const templeL = videoCoordinates(face.leftTemple);
-  const templeR = videoCoordinates(face.rightTemple);
-
-  const foreheadL = videoCoordinates(face.foreheadLeft);
-  const foreheadR = videoCoordinates(face.foreheadRight);
-
-  const templeWidth = Math.abs(
-    templeR.x - templeL.x
-  );
-
-  const upperWidth = Math.abs(
-    foreheadR.x - foreheadL.x
-  );
-
-  if (templeWidth < 10) return;
-
-  // Use forehead-to-temple proportions
-  // to determine the amount of curvature.
-
-  const ratio = upperWidth / templeWidth;
-
-  const taper = Math.max(
-    0.06,
-    Math.min(
-      0.16,
-      0.13 - (ratio - 0.65) * 0.12
-    )
-  );
-
-  const curve = Math.max(
-    0.012,
-    Math.min(
-      0.045,
-      0.025 + (0.7 - ratio) * 0.025
-    )
-  );
-
-  const key =
-    `${Math.round(taper * 100)}-` +
-    `${Math.round(curve * 1000)}`;
-
-  if (key === m4WarpKey) return;
-
-  m4WarpKey = key;
-
-  const w = m4Original.naturalWidth;
-  const h = m4Original.naturalHeight;
-
-  warpPass.width = w;
-  warpPass.height = h;
-
-  warpOutput.width = w;
-  warpOutput.height = h;
-
-  const a = warpPass.getContext("2d");
-  const b = warpOutput.getContext("2d");
-
-  a.clearRect(0, 0, w, h);
-  b.clearRect(0, 0, w, h);
-
-  // PASS 1: Taper the lower sides inward.
-
-  const rows = 100;
-
-  for (let i = 0; i < rows; i++) {
-    const sy = i * h / rows;
-    const sh = Math.min(
-      h - sy,
-      h / rows + 0.6
-    );
-
-    const t = sy / h;
-
-    const widthFactor =
-      1 - taper * Math.pow(t, 1.7);
-
-    const dw = w * widthFactor;
-
-    a.drawImage(
-      m4Original,
-      0, sy, w, sh,
-      (w - dw) / 2,
-      sy,
-      dw,
-      sh
-    );
-  }
-
-  // PASS 2: Add a gentle forehead curve.
-
-  const cols = 140;
-
-  for (let i = 0; i < cols; i++) {
-    const sx = i * w / cols;
-    const sw = Math.min(
-      w - sx,
-      w / cols + 0.65
-    );
-
-    const x =
-      (sx + sw / 2 - w / 2) / (w / 2);
-
-    const shift =
-      h * curve * Math.max(0, 1 - x * x);
-
-    b.drawImage(
-      warpPass,
-      sx, 0, sw, h,
-      sx, shift, sw, h - shift
-    );
-  }
-
-  // Preserve the image's alpha transparency.
-  hair.src = warpOutput.toDataURL("image/png");
-}
-
-// ========================================
-// HAIRSTYLE PRESETS
-// ========================================
-
-const presets = {
-  a: {
-    image: "./style-a.png",
-    size: 157,
-    width: 118,
-    x: -4,
-    y: -37,
-    widthMultiplier: 1.8,
-    hairlineOffset: -0.08
-  },
-
-  b: {
-    image: "./style-b.png?v=2",
-    size: 96,
-    width: 128,
-    x: 13,
-    y: -11,
-    widthMultiplier: 1.8,
-    hairlineOffset: -0.08
-  },
-
-  c: {
-    image: "./style-c.png",
-    size: 90,
-    width: 94,
-    x: -4,
-    y: -65,
-    widthMultiplier: 1.8,
-    hairlineOffset: -0.08
-  },
-
-  m1: {
-    image: "./style-m1.png?v=3",
-    size: 75,
-    width: 100,
-    x: 8,
-    y: -41,
-    widthMultiplier: 1.8,
-    hairlineOffset: -0.08
-  },
-
-  m2: {
-    image: "./style-m2.png?v=3",
-    size: 77,
-    width: 96,
-    x: 24,
-    y: -74,
-    widthMultiplier: 1.8,
-    hairlineOffset: -0.08
-  },
-
-  m3: {
-    image: "./style-m3.png?v=3",
-    size: 83,
-    width: 95,
-    x: 2,
-    y: -61,
-    widthMultiplier: 1.8,
-    hairlineOffset: -0.08
-  },
-
-  m4: {
-    image: "./style-m4.png?v=10",
-    size: 83,
-    width: 96,
-    x: 0,
-    y: -86,
-    widthMultiplier: 1.8,
-    hairlineOffset: -0.08
-  }
-};
-
-// ========================================
-// SEPARATE SETTINGS FOR EACH HAIRSTYLE
-// ========================================
-
-const settings = {};
-
-for (const key of Object.keys(presets)) {
-  const p = presets[key];
-
-  settings[key] = {
-    size: p.size,
-    width: p.width,
-    x: p.x,
-    y: p.y
-  };
-}
-
-// ========================================
-// DISPLAY HELPERS
-// ========================================
-
-function updateLabels() {
-  $("sizeValue").textContent =
-    sizeSlider.value + "%";
-
-  $("widthValue").textContent =
-    widthSlider.value + "%";
-
-  $("xValue").textContent = xSlider.value;
-  $("yValue").textContent = ySlider.value;
-}
-
-function loadSliders(key) {
-  const s = settings[key];
-
-  sizeSlider.value = s.size;
-  widthSlider.value = s.width;
-  xSlider.value = s.x;
-  ySlider.value = s.y;
-
-  updateLabels();
-}
-
-function saveSliders() {
-  if (!currentStyle) return;
-
-  settings[currentStyle] = {
-    size: Number(sizeSlider.value),
-    width: Number(widthSlider.value),
-    x: Number(xSlider.value),
-    y: Number(ySlider.value)
-  };
-
-  autoFit = false;
-  btnAuto.classList.remove("active");
-
-  updateLabels();
-  positionHair();
-
-  statusText.textContent =
-    "Custom fit active. Tracking continues.";
-}
-
-function toggleAdjustments(open) {
-  $("adjustments").classList.toggle(
-    "open",
-    open
-  );
-
-  btnAdjust.setAttribute(
-    "aria-expanded",
-    String(open)
-  );
-
-  $("arrow").textContent =
-    open ? "−" : "+";
-}
-
-// ========================================
-// STYLE SELECTION
-// ========================================
-
-function selectStyle(key) {
-  currentStyle = key;
-
-  hair.src = presets[key].image;
-
-  if (key === "m4") {
-    m4WarpKey = "";
-  }
-
-  hair.style.display = "block";
-  hair.style.visibility =
-    face ? "visible" : "hidden";
-
-  btnAdjust.disabled = false;
-
-  btnA.classList.toggle("active", key === "a");
-  btnB.classList.toggle("active", key === "b");
-  btnC.classList.toggle("active", key === "c");
-
-  btnM1.classList.toggle("active", key === "m1");
-  btnM2.classList.toggle("active", key === "m2");
-  btnM3.classList.toggle("active", key === "m3");
-  btnM4.classList.toggle("active", key === "m4");
-
-  loadSliders(key);
-  positionHair();
-
-  statusText.textContent = autoFit
-    ? "Smart Auto Fit tracking your face."
-    : "Custom fit tracking your face.";
-}
-
-function clearStyle() {
-  currentStyle = null;
-  hair.style.display = "none";
-
-  btnA.classList.remove("active");
-  btnB.classList.remove("active");
-  btnC.classList.remove("active");
-
-  btnM1.classList.remove("active");
-  btnM2.classList.remove("active");
-  btnM3.classList.remove("active");
-  btnM4.classList.remove("active");
-
-  btnAdjust.disabled = true;
-  toggleAdjustments(false);
-
-  statusText.textContent =
-    "Hairstyle cleared.";
-}
-
-// ========================================
-// FACE LANDMARK COORDINATES
-// ========================================
-
-function videoCoordinates(point) {
-  const mw = mirror.clientWidth;
-  const mh = mirror.clientHeight;
-
-  const vw = video.videoWidth || 640;
-  const vh = video.videoHeight || 480;
-
-  const scale = Math.max(
-    mw / vw,
-    mh / vh
-  );
-
-  const rw = vw * scale;
-  const rh = vh * scale;
-
-  const cropX = (rw - mw) / 2;
-  const cropY = (rh - mh) / 2;
-
+m4Original.src="./style-m4.png?v=10";
+
+function videoCoordinates(point){
+  const mw=mirror.clientWidth;
+  const mh=mirror.clientHeight;
+  const vw=video.videoWidth||640;
+  const vh=video.videoHeight||480;
+  const scale=Math.max(mw/vw,mh/vh);
+  const rw=vw*scale;
+  const rh=vh*scale;
+  const cropX=(rw-mw)/2;
+  const cropY=(rh-mh)/2;
   return {
-    x: (1 - point.x) * rw - cropX,
-    y: point.y * rh - cropY
+    x:(1-point.x)*rw-cropX,
+    y:point.y*rh-cropY
   };
 }
 
-// ========================================
-// SAFE HEAD ROTATION
-// ========================================
+function applyM4Warp(){
+  if(currentStyle!=="m4"||!m4Loaded||!face)return;
 
-function headTilt(leftEye, rightEye) {
-  const dx = rightEye.x - leftEye.x;
-  const dy = rightEye.y - leftEye.y;
+  const templeL=videoCoordinates(face.leftTemple);
+  const templeR=videoCoordinates(face.rightTemple);
+  const foreheadL=videoCoordinates(face.foreheadLeft);
+  const foreheadR=videoCoordinates(face.foreheadRight);
 
-  let angle = Math.atan2(dy, dx);
+  const templeWidth=Math.abs(templeR.x-templeL.x);
+  const upperWidth=Math.abs(foreheadR.x-foreheadL.x);
+  if(templeWidth<10)return;
 
-  if (angle > Math.PI / 2) {
-    angle -= Math.PI;
+  const ratio=upperWidth/templeWidth;
+  const taper=Math.max(0.06,Math.min(0.16,
+    0.13-(ratio-0.65)*0.12));
+  const curve=Math.max(0.012,Math.min(0.045,
+    0.025+(0.7-ratio)*0.025));
+
+  const key=`${Math.round(taper*100)}-${Math.round(curve*1000)}`;
+  if(key===m4WarpKey)return;
+  m4WarpKey=key;
+
+  const w=m4Original.naturalWidth;
+  const h=m4Original.naturalHeight;
+  warpPass.width=w;
+  warpPass.height=h;
+  warpOutput.width=w;
+  warpOutput.height=h;
+
+  const a=warpPass.getContext("2d");
+  const b=warpOutput.getContext("2d");
+  a.clearRect(0,0,w,h);
+  b.clearRect(0,0,w,h);
+
+  // Taper lower sides inward.
+  const rows=100;
+  for(let i=0;i<rows;i++){
+    const sy=i*h/rows;
+    const sh=Math.min(h-sy,h/rows+0.6);
+    const t=sy/h;
+    const widthFactor=1-taper*Math.pow(t,1.7);
+    const dw=w*widthFactor;
+    a.drawImage(m4Original,0,sy,w,sh,
+      (w-dw)/2,sy,dw,sh);
   }
 
-  if (angle < -Math.PI / 2) {
-    angle += Math.PI;
+  // Curve the upper forehead region.
+  const cols=140;
+  for(let i=0;i<cols;i++){
+    const sx=i*w/cols;
+    const sw=Math.min(w-sx,w/cols+0.65);
+    const x=(sx+sw/2-w/2)/(w/2);
+    const shift=h*curve*Math.max(0,1-x*x);
+    b.drawImage(warpPass,sx,0,sw,h,
+      sx,shift,sw,h-shift);
   }
-
-  const limit = 25 * Math.PI / 180;
-
-  return Math.max(
-    -limit,
-    Math.min(limit, angle)
-  );
+  hair.src=warpOutput.toDataURL("image/png");
 }
 
-// ========================================
-// SMART HAIRSTYLE POSITIONING
-// ========================================
+function updateLabels(){
+  $("sizeValue").textContent=sizeSlider.value+"%";
+  $("widthValue").textContent=widthSlider.value+"%";
+  $("xValue").textContent=xSlider.value;
+  $("yValue").textContent=ySlider.value;
+}
 
-function positionHair() {
-  if (!currentStyle || !face) return;
+function loadSliders(key){
+  const s=settings[key];
+  sizeSlider.value=s.size;
+  widthSlider.value=s.width;
+  xSlider.value=s.x;
+  ySlider.value=s.y;
+  updateLabels();
+}
 
-  if (currentStyle === "m4") {
-    applyM4Warp();
+function saveSliders(){
+  if(!currentStyle)return;
+  settings[currentStyle]={
+    size:Number(sizeSlider.value),
+    width:Number(widthSlider.value),
+    x:Number(xSlider.value),
+    y:Number(ySlider.value)
+  };
+  autoFit=false;
+  btnAuto.classList.remove("active");
+  updateLabels();
+  positionHair();
+  statusText.textContent="Custom fit active. Tracking continues.";
+}
+
+function toggleAdjustments(open){
+  $("adjustments").classList.toggle("open",open);
+  btnAdjust.setAttribute("aria-expanded",String(open));
+  $("arrow").textContent=open?"−":"+";
+}
+
+function selectStyle(key){
+  currentStyle=key;
+  const requestId=++activeImageRequest;
+  const requestedImage=presets[key].image;
+
+  // Check that the PNG exists.
+  const testImage=new Image();
+  hair.style.visibility="hidden";
+  hair.style.display="none";
+
+  testImage.onload=()=>{
+    if(requestId!==activeImageRequest||currentStyle!==key)return;
+    if(key!=="m4"){
+      hair.src=requestedImage;
+    }else{
+      m4WarpKey="";
+      if(m4Loaded&&face)applyM4Warp();
+      else hair.src=requestedImage;
+    }
+    hair.style.display="block";
+    positionHair();
+  };
+  testImage.onerror=()=>{
+    if(requestId!==activeImageRequest||currentStyle!==key)return;
+    hair.style.visibility="hidden";
+    statusText.textContent="Image missing: "+
+      requestedImage.split("?")[0]+
+      ". Upload it beside this HTML file.";
+  };
+  testImage.src=requestedImage;
+
+  for(const [id,button] of Object.entries(styleButtons)){
+    button.classList.toggle("active",id===key);
   }
+  btnAdjust.disabled=false;
+  loadSliders(key);
+  statusText.textContent=autoFit
+    ?"Smart Auto Fit tracking your face."
+    :"Custom fit tracking your face.";
+}
 
-  const preset = presets[currentStyle];
-  const s = settings[currentStyle];
+function clearStyle(){
+  currentStyle=null;
+  activeImageRequest++;
+  hair.style.display="none";
+  hair.style.visibility="hidden";
+  for(const button of Object.values(styleButtons)){
+    button.classList.remove("active");
+  }
+  btnAdjust.disabled=true;
+  toggleAdjustments(false);
+  statusText.textContent="Hairstyle cleared.";
+}
 
-  const forehead =
-    videoCoordinates(face.forehead);
+function headTilt(leftEye,rightEye){
+  const dx=rightEye.x-leftEye.x;
+  const dy=rightEye.y-leftEye.y;
+  let angle=Math.atan2(dy,dx);
+  if(angle>Math.PI/2)angle-=Math.PI;
+  if(angle< -Math.PI/2)angle+=Math.PI;
+  const limit=25*Math.PI/180;
+  return Math.max(-limit,Math.min(limit,angle));
+}
 
-  const leftTemple =
-    videoCoordinates(face.leftTemple);
+function positionHair(){
+  if(!currentStyle||!face)return;
 
-  const rightTemple =
-    videoCoordinates(face.rightTemple);
+  if(currentStyle==="m4")applyM4Warp();
 
-  const leftEye =
-    videoCoordinates(face.leftEye);
+  const preset=presets[currentStyle];
+  const s=settings[currentStyle];
+  const forehead=videoCoordinates(face.forehead);
+  const leftTemple=videoCoordinates(face.leftTemple);
+  const rightTemple=videoCoordinates(face.rightTemple);
+  const leftEye=videoCoordinates(face.leftEye);
+  const rightEye=videoCoordinates(face.rightEye);
 
-  const rightEye =
-    videoCoordinates(face.rightEye);
-
-  const faceWidth = Math.hypot(
-    rightTemple.x - leftTemple.x,
-    rightTemple.y - leftTemple.y
+  const faceWidth=Math.hypot(
+    rightTemple.x-leftTemple.x,
+    rightTemple.y-leftTemple.y
   );
-
-  if (
-    !Number.isFinite(faceWidth) ||
-    faceWidth < 10
-  ) {
-    hair.style.visibility = "hidden";
+  if(!Number.isFinite(faceWidth)||faceWidth<10){
+    hair.style.visibility="hidden";
     return;
   }
 
-  const faceScale =
-    faceWidth / REFERENCE_FACE_WIDTH;
+  const faceScale=faceWidth/REFERENCE_FACE_WIDTH;
+  const values=autoFit?preset:s;
+  const hairWidth=faceWidth*preset.widthMultiplier*
+    (values.size/100);
+  const x=forehead.x+values.x*faceScale;
+  const y=forehead.y+
+    faceWidth*preset.hairlineOffset+
+    values.y*faceScale;
+  const angle=headTilt(leftEye,rightEye);
+  const stretchX=values.width/100;
 
-  const values = autoFit ? preset : s;
-
-  const hairWidth =
-    faceWidth *
-    preset.widthMultiplier *
-    (values.size / 100);
-
-  const xOffset = values.x * faceScale;
-  const yOffset = values.y * faceScale;
-
-  const x = forehead.x + xOffset;
-
-  const y =
-    forehead.y +
-    faceWidth * preset.hairlineOffset +
-    yOffset;
-
-  const angle = headTilt(
-    leftEye,
-    rightEye
+  // Small perspective response to head turning.
+  // This is a 2D approximation, not 3D hair geometry.
+  const leftSpan=Math.hypot(
+    leftEye.x-leftTemple.x,leftEye.y-leftTemple.y
   );
+  const rightSpan=Math.hypot(
+    rightTemple.x-rightEye.x,rightTemple.y-rightEye.y
+  );
+  const yaw=(rightSpan-leftSpan)/
+    Math.max(1,rightSpan+leftSpan);
+  const yawClamped=Math.max(-0.18,Math.min(0.18,yaw));
+  const perspectiveScale=1-Math.abs(yawClamped)*0.18;
+  const perspectiveSkew=yawClamped*12;
 
-  const stretchX = values.width / 100;
+  hair.style.width=hairWidth+"px";
+  hair.style.left=x+"px";
+  hair.style.top=y+"px";
+  hair.style.transform=
+    "translate(-50%, -8%) rotate("+angle+
+    "rad) skewY("+perspectiveSkew+
+    "deg) scaleX("+(stretchX*perspectiveScale)+")";
 
-  hair.style.width = hairWidth + "px";
-  hair.style.left = x + "px";
-  hair.style.top = y + "px";
-
-  hair.style.transform =
-    "translate(-50%, -8%) rotate(" +
-    angle + "rad) scaleX(" +
-    stretchX + ")";
-
-  hair.style.visibility = "visible";
+  if(hair.complete&&hair.naturalWidth>0){
+    hair.style.visibility="visible";
+  }
 }
 
-// ========================================
-// CONTROLS
-// ========================================
+// Slider controls.
+for(const slider of [
+  sizeSlider,widthSlider,xSlider,ySlider
+]){
+  slider.addEventListener("input",saveSliders);
+}
 
-sizeSlider.addEventListener(
-  "input",
-  saveSliders
-);
+// Hairstyle buttons.
+for(const [key,button] of Object.entries(styleButtons)){
+  button.onclick=()=>selectStyle(key);
+}
 
-widthSlider.addEventListener(
-  "input",
-  saveSliders
-);
+$("btnClear").onclick=clearStyle;
 
-xSlider.addEventListener(
-  "input",
-  saveSliders
-);
-
-ySlider.addEventListener(
-  "input",
-  saveSliders
-);
-
-btnA.onclick = () => selectStyle("a");
-btnB.onclick = () => selectStyle("b");
-btnC.onclick = () => selectStyle("c");
-
-btnM1.onclick = () => selectStyle("m1");
-btnM2.onclick = () => selectStyle("m2");
-btnM3.onclick = () => selectStyle("m3");
-btnM4.onclick = () => selectStyle("m4");
-
-$("btnClear").onclick = clearStyle;
-
-btnAdjust.onclick = () => {
-  if (!currentStyle) return;
-
-  const open =
-    $("adjustments").classList.contains(
-      "open"
-    );
-
-  toggleAdjustments(!open);
+btnAdjust.onclick=()=>{
+  if(!currentStyle)return;
+  toggleAdjustments(
+    !$("adjustments").classList.contains("open")
+  );
 };
 
-btnAuto.onclick = () => {
-  autoFit = true;
-  btnAuto.classList.add("active");
-
-  if (currentStyle) {
-    const p = presets[currentStyle];
-
-    settings[currentStyle] = {
-      size: p.size,
-      width: p.width,
-      x: p.x,
-      y: p.y
-    };
-
-    loadSliders(currentStyle);
-    positionHair();
-  }
-
-  statusText.textContent =
-    "Smart Auto Fit enabled.";
-};
-
-$("btnResetFit").onclick = () => {
-  if (!currentStyle) return;
-
-  const p = presets[currentStyle];
-
-  settings[currentStyle] = {
-    size: p.size,
-    width: p.width,
-    x: p.x,
-    y: p.y
+function resetFit(){
+  if(!currentStyle)return;
+  const p=presets[currentStyle];
+  settings[currentStyle]={
+    size:p.size,width:p.width,x:p.x,y:p.y
   };
-
-  autoFit = true;
+  autoFit=true;
   btnAuto.classList.add("active");
-
   loadSliders(currentStyle);
   positionHair();
+  statusText.textContent="Smart Auto Fit enabled.";
+}
 
-  statusText.textContent =
-    "Hair fit reset to calibration.";
-};
+btnAuto.onclick=resetFit;
+$("btnResetFit").onclick=resetFit;
+$("btnReset").onclick=()=>location.reload();
 
-$("btnReset").onclick = () => {
-  location.reload();
-};
-
-$("btnFull").onclick = async () => {
-  try {
-    if (!document.fullscreenElement) {
+$("btnFull").onclick=async()=>{
+  try{
+    if(!document.fullscreenElement){
       await mirror.requestFullscreen();
-    } else {
+    }else{
       await document.exitFullscreen();
     }
-
     positionHair();
-
-  } catch (error) {
-    statusText.textContent =
-      "Fullscreen is unavailable.";
+  }catch(error){
+    statusText.textContent="Fullscreen is unavailable.";
   }
 };
 
-// ========================================
-// MEDIAPIPE FACE TRACKING
-// ========================================
-
-function smoothPoint(oldPoint, newPoint) {
-  const amount = 0.3;
-
+// Face landmark smoothing.
+function smoothPoint(oldPoint,newPoint){
+  const amount=0.3;
   return {
-    x: oldPoint.x +
-       (newPoint.x - oldPoint.x) * amount,
-
-    y: oldPoint.y +
-       (newPoint.y - oldPoint.y) * amount
+    x:oldPoint.x+(newPoint.x-oldPoint.x)*amount,
+    y:oldPoint.y+(newPoint.y-oldPoint.y)*amount
   };
 }
 
-const mesh = new FaceMesh({
-  locateFile: file =>
-    "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/" +
-    file
+const mesh=new FaceMesh({
+  locateFile:file=>
+    "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/"+file
 });
 
 mesh.setOptions({
-  maxNumFaces: 1,
-  refineLandmarks: false,
-  minDetectionConfidence: 0.6,
-  minTrackingConfidence: 0.6
+  maxNumFaces:1,
+  refineLandmarks:false,
+  minDetectionConfidence:0.6,
+  minTrackingConfidence:0.6
 });
 
-mesh.onResults(results => {
-  const detected = results.multiFaceLandmarks;
-
-  if (!detected || !detected.length) {
-    face = null;
-    hair.style.visibility = "hidden";
+mesh.onResults(results=>{
+  const detected=results.multiFaceLandmarks;
+  if(!detected||!detected.length){
+    missingFrames++;
+    if(missingFrames>=3){
+      face=null;
+      hair.style.visibility="hidden";
+    }
     return;
   }
+  missingFrames=0;
 
-  const lm = detected[0];
-
-  const next = {
-    forehead: lm[10],
-    leftTemple: lm[234],
-    rightTemple: lm[454],
-    leftEye: lm[33],
-    rightEye: lm[263],
-
-    // Additional points for M4 curved fitting.
-    foreheadLeft: lm[71],
-    foreheadRight: lm[301]
+  const lm=detected[0];
+  const next={
+    forehead:lm[10],
+    leftTemple:lm[234],
+    rightTemple:lm[454],
+    leftEye:lm[33],
+    rightEye:lm[263],
+    foreheadLeft:lm[71],
+    foreheadRight:lm[301]
   };
 
-  if (!face) {
-    face = next;
-  } else {
-    for (const key of Object.keys(next)) {
-      face[key] = smoothPoint(
-        face[key],
-        next[key]
-      );
+  if(!face){
+    face=next;
+  }else{
+    for(const key of Object.keys(next)){
+      face[key]=smoothPoint(face[key],next[key]);
     }
   }
-
   positionHair();
 });
 
-// ========================================
-// CAMERA
-// ========================================
+// Camera.
+async function startCamera(){
+  if(cameraStarted||cameraStarting)return;
+  cameraStarting=true;
+  $("startButton").disabled=true;
+  $("startButton").textContent="Starting...";
 
-async function startCamera() {
-  if (cameraStarted || cameraStarting) {
-    return;
-  }
-
-  cameraStarting = true;
-
-  $("startButton").disabled = true;
-  $("startButton").textContent = "Starting...";
-
-  try {
-    camera = new Camera(video, {
-      onFrame: async () => {
-        await mesh.send({ image: video });
+  try{
+    camera=new Camera(video,{
+      onFrame:async()=>{
+        await mesh.send({image:video});
       },
-
-      width: 640,
-      height: 480
+      width:640,
+      height:480
     });
 
     await camera.start();
-
-    cameraStarted = true;
-
-    $("startScreen").style.display = "none";
-
-    statusText.textContent =
+    cameraStarted=true;
+    $("startScreen").style.display="none";
+    statusText.textContent=
       "Camera ready. Choose a hairstyle.";
-
-  } catch (error) {
+  }catch(error){
     console.error(error);
-
-    $("startButton").disabled = false;
-    $("startButton").textContent = "Try Again";
-
-    statusText.textContent =
+    $("startButton").disabled=false;
+    $("startButton").textContent="Try Again";
+    statusText.textContent=
       "Camera unavailable. Check permissions.";
-
-  } finally {
-    cameraStarting = false;
+  }finally{
+    cameraStarting=false;
   }
 }
 
-$("startButton").addEventListener(
-  "click",
-  startCamera
-);
-
-window.addEventListener(
-  "resize",
-  positionHair
-);
-
-document.addEventListener(
-  "fullscreenchange",
-  positionHair
-);
-
+$("startButton").addEventListener("click",startCamera);
+window.addEventListener("resize",positionHair);
+document.addEventListener("fullscreenchange",positionHair);
 updateLabels();
-
 </script>
 </body>
 </html>
