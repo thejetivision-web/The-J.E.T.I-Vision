@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>J.E.T.I. Vision | Curved Fit Prototype v3.5</title>
+<title>J.E.T.I. Vision | Curved Fit Prototype v3.6</title>
 <style>
 *{box-sizing:border-box}
 :root{--pink:#dba3be;--pale:#f5e4ec}
@@ -68,6 +68,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </div>
 
   <div class="buttons">
+    <button id="btnBlend" class="active" aria-pressed="true">Adaptive Blend: On</button>
+  </div>
+
+  <div class="buttons">
     <button id="btnAuto" class="active">Auto Fit</button>
     <button id="btnFull">Fullscreen</button>
     <button id="btnReset">Reset</button>
@@ -106,8 +110,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script>
 "use strict";
 
-// J.E.T.I. VISION V3.5 — stable curved fitting for all 7 styles.
-// Keeps the v3.3 controls, face tracking and individual fitting presets.
+// J.E.T.I. VISION V3.6
+// Adaptive brightness and selective edge blending.
 
 const $ = id => document.getElementById(id);
 const mirror = $("mirror");
@@ -135,61 +139,73 @@ let face = null;
 let missingFrames = 0;
 let activeImageRequest = 0;
 let autoFit = true;
+let blendEnabled = true;
+let lightLevel = 0.5;
+let lastLightSample = 0;
+
+const lightCanvas = document.createElement("canvas");
+lightCanvas.width = 64;
+lightCanvas.height = 48;
+
+const lightCtx = lightCanvas.getContext("2d", {
+  willReadFrequently:true
+});
 
 const REFERENCE_FACE_WIDTH = 150;
 
 const presets = {
   a:{
-  4,y:-37,widthMultiplier:1.8,hairlineOffset:-0.08
+    image:"./style-a.png",
+    size:157,width:118,
+    x:-4,y:-41,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
   },
 
   b:{
     image:"./style-b.png?v=2",
-    size:96,
-    width:128,
-    x:13,
-    y:-40,
+    size:96,width:128,
+    x:13,y:-40,
     widthMultiplier:1.8,
     hairlineOffset:-0.08
   },
 
   c:{
-    image:"./style-c.png",size:90,width:94,
-    x:-4,y:-65,widthMultiplier:1.8,hairlineOffset:-0.08
+    image:"./style-c.png",
+    size:90,width:94,
+    x:-4,y:-65,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
   },
-  
-m1:{
-  image:"./style-m1.png?v=3",
-  size:85,
-  width:100,
-  x:8,
-  y:-70,
-  widthMultiplier:1.8,
-  hairlineOffset:-0.08
-},
 
-m2:{
-  image:"./style-m2.png?v=3",
-  size:82,
-  width:99,
-  x:0,
-  y:-74,
-  widthMultiplier:1.8,
-  hairlineOffset:-0.08
-},
+  m1:{
+    image:"./style-m1.png?v=3",
+    size:85,width:100,
+    x:8,y:-70,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
 
+  m2:{
+    image:"./style-m2.png?v=3",
+    size:82,width:99,
+    x:0,y:-74,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
 
   m3:{
-    image:"./style-m3.png?v=3",size:83,width:95,
-    x:2,y:-61,widthMultiplier:1.8,hairlineOffset:-0.08
+    image:"./style-m3.png?v=3",
+    size:83,width:95,
+    x:2,y:-61,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
   },
 
   m4:{
     image:"./style-m4.png?v=10",
-    size:91,
-    width:88,
-    x:0,
-    y:-66,
+    size:91,width:88,
+    x:0,y:-66,
     widthMultiplier:1.8,
     hairlineOffset:-0.08
   }
@@ -198,17 +214,14 @@ m2:{
 const settings = {};
 
 for(const key of Object.keys(presets)){
-  const p=presets[key];
-  settings[key]={
+  const p = presets[key];
+  settings[key] = {
     size:p.size,
     width:p.width,
     x:p.x,
     y:p.y
   };
 }
-
-// Cache the original transparent PNG for each hairstyle.
-// Never repeatedly warp an already-warped image.
 
 const originals = {};
 const warpKeys = {};
@@ -218,43 +231,43 @@ const warpPass = document.createElement("canvas");
 const warpOutput = document.createElement("canvas");
 
 for(const [key,preset] of Object.entries(presets)){
-  const img=new Image();
+  const img = new Image();
 
-  originals[key]=img;
-  warpKeys[key]="";
+  originals[key] = img;
+  warpKeys[key] = "";
 
-  img.onload=()=>{
-    warpKeys[key]="";
+  img.onload = ()=>{
+    warpKeys[key] = "";
     delete warpedImages[key];
 
-    if(currentStyle===key){
+    if(currentStyle === key){
       positionHair();
     }
   };
 
-  img.onerror=()=>{
-    if(currentStyle===key){
-      statusText.textContent=
-        "Image missing: "+preset.image.split("?")[0];
+  img.onerror = ()=>{
+    if(currentStyle === key){
+      statusText.textContent =
+        "Image missing: " + preset.image.split("?")[0];
     }
   };
 
-  img.src=preset.image;
+  img.src = preset.image;
 }
 
 function videoCoordinates(point){
-  const mw=mirror.clientWidth;
-  const mh=mirror.clientHeight;
+  const mw = mirror.clientWidth;
+  const mh = mirror.clientHeight;
 
-  const vw=video.videoWidth||640;
-  const vh=video.videoHeight||480;
+  const vw = video.videoWidth || 640;
+  const vh = video.videoHeight || 480;
 
-  const scale=Math.max(mw/vw,mh/vh);
-  const rw=vw*scale;
-  const rh=vh*scale;
+  const scale = Math.max(mw/vw,mh/vh);
+  const rw = vw*scale;
+  const rh = vh*scale;
 
-  const cropX=(rw-mw)/2;
-  const cropY=(rh-mh)/2;
+  const cropX = (rw-mw)/2;
+  const cropY = (rh-mh)/2;
 
   return {
     x:(1-point.x)*rw-cropX,
@@ -262,32 +275,29 @@ function videoCoordinates(point){
   };
 }
 
-// Preserve original PNG transparency.
-// A blanket bottom fade can erase legitimate hair details.
-
 function applyCurvedFit(key){
-  const original=originals[key];
+  const original = originals[key];
 
   if(
-    !face||
-    !original||
-    !original.complete||
+    !face ||
+    !original ||
+    !original.complete ||
     !original.naturalWidth
   ){
     return;
   }
 
-  const templeL=videoCoordinates(face.leftTemple);
-  const templeR=videoCoordinates(face.rightTemple);
+  const templeL = videoCoordinates(face.leftTemple);
+  const templeR = videoCoordinates(face.rightTemple);
 
-  const foreheadL=videoCoordinates(face.foreheadLeft);
-  const foreheadR=videoCoordinates(face.foreheadRight);
+  const foreheadL = videoCoordinates(face.foreheadLeft);
+  const foreheadR = videoCoordinates(face.foreheadRight);
 
-  const templeWidth=Math.abs(templeR.x-templeL.x);
+  const templeWidth = Math.abs(templeR.x-templeL.x);
 
-  if(templeWidth<10)return;
+  if(templeWidth < 10)return;
 
-  const ratio=Math.max(
+  const ratio = Math.max(
     .35,
     Math.min(
       1.05,
@@ -295,35 +305,33 @@ function applyCurvedFit(key){
     )
   );
 
-  const isLong=key==="a"||key==="b";
+  const isLong = key==="a" || key==="b";
 
-  const taper=Math.max(
+  const taper = Math.max(
     .025,
     Math.min(
-      isLong?.075:.16,
-      (isLong?.06:.13)-(ratio-.65)*.08
+      isLong ? .075 : .16,
+      (isLong ? .06 : .13)-(ratio-.65)*.08
     )
   );
 
-  const curve=Math.max(
+  const curve = Math.max(
     .01,
     Math.min(
-      isLong?.025:.045,
-      (isLong?.018:.025)+(.7-ratio)*.025
+      isLong ? .025 : .045,
+      (isLong ? .018 : .025)+(.7-ratio)*.025
     )
   );
 
-  // Avoid unnecessary rendering on every video frame.
-
-  const keyForShape=
+  const keyForShape =
     `${Math.round(taper*100)}-${Math.round(curve*1000)}`;
 
   if(
-    warpKeys[key]===keyForShape&&
+    warpKeys[key]===keyForShape &&
     warpedImages[key]
   ){
     if(
-      currentStyle===key&&
+      currentStyle===key &&
       hair.src!==warpedImages[key]
     ){
       hair.src=warpedImages[key];
@@ -331,38 +339,35 @@ function applyCurvedFit(key){
     return;
   }
 
-  const w=original.naturalWidth;
-  const h=original.naturalHeight;
+  const w = original.naturalWidth;
+  const h = original.naturalHeight;
 
-  const scale=Math.min(1,900/Math.max(w,h));
+  const scale = Math.min(1,900/Math.max(w,h));
 
-  const cw=Math.max(1,Math.round(w*scale));
-  const ch=Math.max(1,Math.round(h*scale));
+  const cw = Math.max(1,Math.round(w*scale));
+  const ch = Math.max(1,Math.round(h*scale));
 
-  warpPass.width=cw;
-  warpOutput.width=cw;
+  warpPass.width = cw;
+  warpOutput.width = cw;
 
-  warpPass.height=ch;
-  warpOutput.height=ch;
+  warpPass.height = ch;
+  warpOutput.height = ch;
 
-  const a=warpPass.getContext("2d");
-  const b=warpOutput.getContext("2d");
+  const a = warpPass.getContext("2d");
+  const b = warpOutput.getContext("2d");
 
   a.clearRect(0,0,cw,ch);
   b.clearRect(0,0,cw,ch);
 
-  // Shape the sides to approximate head curvature.
-
-  const rows=100;
+  const rows = 100;
 
   for(let i=0;i<rows;i++){
-    const sy=i*ch/rows;
-    const sh=Math.min(ch-sy,ch/rows+.6);
+    const sy = i*ch/rows;
+    const sh = Math.min(ch-sy,ch/rows+.6);
 
-    const t=sy/ch;
-
-    const factor=1-taper*Math.pow(t,1.7);
-    const dw=cw*factor;
+    const t = sy/ch;
+    const factor = 1-taper*Math.pow(t,1.7);
+    const dw = cw*factor;
 
     a.drawImage(
       original,
@@ -371,16 +376,14 @@ function applyCurvedFit(key){
     );
   }
 
-  // Add a subtle center curve.
-
-  const cols=140;
+  const cols = 140;
 
   for(let i=0;i<cols;i++){
-    const sx=i*cw/cols;
-    const sw=Math.min(cw-sx,cw/cols+.65);
+    const sx = i*cw/cols;
+    const sw = Math.min(cw-sx,cw/cols+.65);
 
-    const x=(sx+sw/2-cw/2)/(cw/2);
-    const shift=ch*curve*Math.max(0,1-x*x);
+    const x = (sx+sw/2-cw/2)/(cw/2);
+    const shift = ch*curve*Math.max(0,1-x*x);
 
     b.drawImage(
       warpPass,
@@ -389,17 +392,172 @@ function applyCurvedFit(key){
     );
   }
 
-  // Preserve transparency and cache by hairstyle.
+  // Feather cutout edges for men's hairstyles.
+  if(key.startsWith("m")){
+    featherInnerEdge(warpOutput);
+  }
 
-  const result=warpOutput.toDataURL("image/png");
+  const result = warpOutput.toDataURL("image/png");
 
-  warpedImages[key]=result;
-  warpKeys[key]=keyForShape;
+  warpedImages[key] = result;
+  warpKeys[key] = keyForShape;
 
-  if(currentStyle===key){
-    hair.src=result;
+  if(currentStyle === key){
+    hair.src = result;
   }
 }
+
+// Gentle feathering at opaque-to-transparent edges.
+// Does not remove opaque skin-tone pixels in PNG files.
+
+function featherInnerEdge(canvas){
+  const ctx = canvas.getContext("2d",{
+    willReadFrequently:true
+  });
+
+  const w = canvas.width;
+  const h = canvas.height;
+
+  const data = ctx.getImageData(0,0,w,h);
+  const src = data.data;
+
+  const alpha = new Uint8Array(w*h);
+
+  for(let i=0;i<alpha.length;i++){
+    alpha[i] = src[i*4+3];
+  }
+
+  const x0 = Math.floor(w*.18);
+  const x1 = Math.ceil(w*.82);
+
+  const y0 = Math.floor(h*.12);
+  const y1 = Math.ceil(h*.82);
+
+  for(let y=y0;y<y1;y++){
+    for(let x=x0;x<x1;x++){
+      const i = y*w+x;
+      const a = alpha[i];
+
+      if(a<200)continue;
+
+      let min = 255;
+
+      for(let dy=-2;dy<=2;dy++){
+        const yy = y+dy;
+        if(yy<0||yy>=h)continue;
+
+        for(let dx=-2;dx<=2;dx++){
+          const xx = x+dx;
+          if(xx<0||xx>=w)continue;
+
+          min = Math.min(min,alpha[yy*w+xx]);
+        }
+      }
+
+      if(min<80){
+        src[i*4+3] = Math.min(a,185);
+      }
+    }
+  }
+
+  ctx.putImageData(data,0,0);
+}
+
+// Sample camera brightness periodically.
+// This matches exposure, not skin tone.
+
+function updateLighting(landmarks){
+  if(!blendEnabled||!video.videoWidth)return;
+
+  const now = performance.now();
+
+  if(now-lastLightSample<250)return;
+
+  lastLightSample = now;
+
+  try{
+    lightCtx.drawImage(video,0,0,64,48);
+
+    const pixels =
+      lightCtx.getImageData(0,0,64,48).data;
+
+    const points = [
+      landmarks[50],
+      landmarks[280]
+    ];
+
+    let sum=0;
+    let count=0;
+
+    for(const pt of points){
+      const cx = Math.round(pt.x*63);
+      const cy = Math.round(pt.y*47);
+
+      for(let dy=-2;dy<=2;dy++){
+        for(let dx=-2;dx<=2;dx++){
+          const x=cx+dx;
+          const y=cy+dy;
+
+          if(x<0||x>=64||y<0||y>=48){
+            continue;
+          }
+
+          const i=(y*64+x)*4;
+
+          sum+=(
+            .2126*pixels[i]+
+            .7152*pixels[i+1]+
+            .0722*pixels[i+2]
+          )/255;
+
+          count++;
+        }
+      }
+    }
+
+    if(count){
+      lightLevel =
+        lightLevel*.85+(sum/count)*.15;
+    }
+
+    const brightness = Math.max(
+      .88,
+      Math.min(
+        1.10,
+        .94+(lightLevel-.35)*.32
+      )
+    );
+
+    hair.style.filter =
+      `brightness(${brightness.toFixed(3)})`;
+
+  }catch(error){
+    hair.style.filter="none";
+  }
+}
+
+$("btnBlend").onclick=()=>{
+  blendEnabled=!blendEnabled;
+
+  $("btnBlend").classList.toggle(
+    "active",
+    blendEnabled
+  );
+
+  $("btnBlend").setAttribute(
+    "aria-pressed",
+    String(blendEnabled)
+  );
+
+  $("btnBlend").textContent =
+    "Adaptive Blend: "+(blendEnabled?"On":"Off");
+
+  if(!blendEnabled){
+    hair.style.filter="none";
+  }else{
+    lastLightSample=0;
+  }
+};
 
 function updateLabels(){
   $("sizeValue").textContent=sizeSlider.value+"%";
@@ -435,7 +593,7 @@ function saveSliders(){
   updateLabels();
   positionHair();
 
-  statusText.textContent=
+  statusText.textContent =
     "Custom fit active. Tracking continues.";
 }
 
@@ -463,7 +621,7 @@ function selectStyle(key){
 
   testImage.onload=()=>{
     if(
-      requestId!==activeImageRequest||
+      requestId!==activeImageRequest ||
       currentStyle!==key
     ){
       return;
@@ -484,7 +642,7 @@ function selectStyle(key){
 
   testImage.onerror=()=>{
     if(
-      requestId!==activeImageRequest||
+      requestId!==activeImageRequest ||
       currentStyle!==key
     ){
       return;
@@ -492,7 +650,7 @@ function selectStyle(key){
 
     hair.style.visibility="hidden";
 
-    statusText.textContent=
+    statusText.textContent =
       "Image missing: "+
       requestedImage.split("?")[0]+
       ". Upload it beside this HTML file.";
@@ -566,7 +724,7 @@ function positionHair(){
   );
 
   if(
-    !Number.isFinite(faceWidth)||
+    !Number.isFinite(faceWidth) ||
     faceWidth<10
   ){
     hair.style.visibility="hidden";
@@ -576,22 +734,20 @@ function positionHair(){
   const faceScale=faceWidth/REFERENCE_FACE_WIDTH;
   const values=autoFit?preset:s;
 
-  const hairWidth=
+  const hairWidth =
     faceWidth*
     preset.widthMultiplier*
     (values.size/100);
 
   const x=forehead.x+values.x*faceScale;
 
-  const y=
+  const y =
     forehead.y+
     faceWidth*preset.hairlineOffset+
     values.y*faceScale;
 
   const angle=headTilt(leftEye,rightEye);
   const stretchX=values.width/100;
-
-  // Approximate perspective when the head turns.
 
   const leftSpan=Math.hypot(
     leftEye.x-leftTemple.x,
@@ -603,7 +759,7 @@ function positionHair(){
     rightTemple.y-rightEye.y
   );
 
-  const yaw=
+  const yaw =
     (rightSpan-leftSpan)/
     Math.max(1,rightSpan+leftSpan);
 
@@ -612,7 +768,7 @@ function positionHair(){
     Math.min(0.18,yaw)
   );
 
-  const perspectiveScale=
+  const perspectiveScale =
     1-Math.abs(yawClamped)*0.18;
 
   const perspectiveSkew=yawClamped*12;
@@ -621,21 +777,19 @@ function positionHair(){
   hair.style.left=x+"px";
   hair.style.top=y+"px";
 
-  hair.style.transform=
+  hair.style.transform =
     "translate(-50%, -8%) rotate("+angle+
     "rad) skewY("+perspectiveSkew+
     "deg) scaleX("+
     (stretchX*perspectiveScale)+")";
 
   if(
-    hair.complete&&
+    hair.complete &&
     hair.naturalWidth>0
   ){
     hair.style.visibility="visible";
   }
 }
-
-// Slider controls.
 
 for(const slider of [
   sizeSlider,
@@ -645,8 +799,6 @@ for(const slider of [
 ]){
   slider.addEventListener("input",saveSliders);
 }
-
-// Hairstyle buttons.
 
 for(const [key,button] of Object.entries(styleButtons)){
   button.onclick=()=>selectStyle(key);
@@ -697,13 +849,12 @@ $("btnFull").onclick=async()=>{
     }
 
     positionHair();
+
   }catch(error){
-    statusText.textContent=
+    statusText.textContent =
       "Fullscreen is unavailable.";
   }
 };
-
-// Face landmark smoothing.
 
 function smoothPoint(oldPoint,newPoint){
   const amount=0.3;
@@ -765,10 +916,9 @@ mesh.onResults(results=>{
     }
   }
 
+  updateLighting(lm);
   positionHair();
 });
-
-// Camera.
 
 async function startCamera(){
   if(cameraStarted||cameraStarting)return;
@@ -793,7 +943,7 @@ async function startCamera(){
 
     $("startScreen").style.display="none";
 
-    statusText.textContent=
+    statusText.textContent =
       "Camera ready. Choose a hairstyle.";
 
   }catch(error){
@@ -802,7 +952,7 @@ async function startCamera(){
     $("startButton").disabled=false;
     $("startButton").textContent="Try Again";
 
-    statusText.textContent=
+    statusText.textContent =
       "Camera unavailable. Check permissions.";
 
   }finally{
