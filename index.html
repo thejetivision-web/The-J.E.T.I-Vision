@@ -223,6 +223,32 @@ function videoCoordinates(point){
   };
 }
 
+function softenHairline(canvas, key) {
+  // Apply only to Classic Side Part for now.
+  if (key !== "m4") return;
+
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "destination-in";
+
+  // Keep most of the hairstyle fully visible.
+  // Gradually fade its bottom 18%.
+  const fade = ctx.createLinearGradient(
+    0, h * 0.82,
+    0, h
+  );
+
+  fade.addColorStop(0, "rgba(0,0,0,1)");
+  fade.addColorStop(1, "rgba(0,0,0,0)");
+
+  ctx.fillStyle = fade;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+  
 function applyCurvedFit(key){
   const original = originals[key];
   if (!face || !original || !original.complete || !original.naturalWidth) return;
@@ -279,7 +305,8 @@ function applyCurvedFit(key){
   }
   // A transparent PNG stays transparent through both canvas passes.
   // Set the cache key only after rendering succeeds.
-  hair.src=warpOutput.toDataURL("image/png");
+  softenHairline(warpOutput, key);
+hair.src=warpOutput.toDataURL("image/png");
   warpKeys[key]=keyForShape;
 }
 
