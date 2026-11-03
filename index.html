@@ -629,6 +629,232 @@ $("splitLine").style.left=value+"%";
 $("compareSlider").oninput=updateComparison;
 
 window.addEventListener("pagehide",stopCamera);
+
+       
+/* J.E.T.I. HAIR MASK EDITOR */
+
+const maskCanvas = document.getElementById("hairMaskCanvas");
+const maskCtx = maskCanvas.getContext("2d");
+
+const maskLayer = document.createElement("canvas");
+const layerCtx = maskLayer.getContext("2d");
+
+let maskMode = "paint";
+let maskDrawing = false;
+let lastMaskPoint = null;
+let maskReady = false;
+
+function loadMaskPhoto() {
+  if (!originalPhoto) return;
+
+  const image = new Image();
+
+  image.onload = () => {
+    const maxDimension = 1200;
+    const scale = Math.min(
+      1,
+      maxDimension / Math.max(image.width, image.height)
+    );
+
+    const w = Math.round(image.width * scale);
+    const h = Math.round(image.height * scale);
+
+    maskCanvas.width = w;
+    maskCanvas.height = h;
+    maskLayer.width = w;
+    maskLayer.height = h;
+
+    layerCtx.clearRect(0, 0, w, h);
+
+    maskReady = true;
+    renderMask();
+
+    document.getElementById("maskStatus").textContent =
+      "Photo loaded. Paint the hair you want to replace.";
+  };
+
+  image.src = originalPhoto;
+}
+
+function renderMask() {
+  if (!maskReady || !originalPhoto) return;
+
+  const image = new Image();
+
+  image.onload = () => {
+    maskCtx.clearRect(
+      0, 0, maskCanvas.width, maskCanvas.height
+    );
+
+    maskCtx.drawImage(
+      image, 0, 0,
+      maskCanvas.width, maskCanvas.height
+    );
+
+    maskCtx.save();
+    maskCtx.globalAlpha = 0.55;
+    maskCtx.drawImage(maskLayer, 0, 0);
+    maskCtx.restore();
+  };
+
+  image.src = originalPhoto;
+}
+
+function maskPoint(event) {
+  const rect = maskCanvas.getBoundingClientRect();
+
+  return {
+    x: (event.clientX - rect.left) *
+      maskCanvas.width / rect.width,
+    y: (event.clientY - rect.top) *
+      maskCanvas.height / rect.height
+  };
+}
+
+function drawMaskStroke(from, to) {
+  const brush = Number(
+    document.getElementById("brushSize").value
+  );
+
+  const displayScale =
+    maskCanvas.width / maskCanvas.getBoundingClientRect().width;
+
+  layerCtx.save();
+
+  layerCtx.lineCap = "round";
+  layerCtx.lineJoin = "round";
+  layerCtx.lineWidth = brush * displayScale;
+
+  if (maskMode === "erase") {
+    layerCtx.globalCompositeOperation = "destination-out";
+    layerCtx.strokeStyle = "rgba(0,0,0,1)";
+  } else {
+    layerCtx.globalCompositeOperation = "source-over";
+    layerCtx.strokeStyle = "rgba(235,100,155,1)";
+  }
+
+  layerCtx.beginPath();
+  layerCtx.moveTo(from.x, from.y);
+  layerCtx.lineTo(to.x, to.y);
+  layerCtx.stroke();
+
+  layerCtx.restore();
+  renderMask();
+}
+
+maskCanvas.addEventListener("pointerdown", event => {
+  if (!maskReady) return;
+
+  maskDrawing = true;
+  lastMaskPoint = maskPoint(event);
+
+  maskCanvas.setPointerCapture(event.pointerId);
+  drawMaskStroke(lastMaskPoint, lastMaskPoint);
+});
+
+maskCanvas.addEventListener("pointermove", event => {
+  if (!maskDrawing) return;
+
+  const point = maskPoint(event);
+  drawMaskStroke(lastMaskPoint, point);
+  lastMaskPoint = point;
+});
+
+function stopMaskDrawing() {
+  maskDrawing = false;
+  lastMaskPoint = null;
+}
+
+maskCanvas.addEventListener("pointerup", stopMaskDrawing);
+maskCanvas.addEventListener("pointercancel", stopMaskDrawing);
+
+document.getElementById("paintMode").onclick = () => {
+  maskMode = "paint";
+
+  document.getElementById("paintMode")
+    .classList.add("primary");
+
+  document.getElementById("eraseMode")
+    .classList.remove("primary");
+};
+
+document.getElementById("eraseMode").onclick = () => {
+  maskMode = "erase";
+
+  document.getElementById("eraseMode")
+    .classList.add("primary");
+
+  document.getElementById("paintMode")
+    .classList.remove("primary");
+};
+
+document.getElementById("brushSize").oninput = event => {
+  document.getElementById("brushSizeLabel")
+    .textContent = event.target.value;
+};
+
+document.getElementById("clearMask").onclick = () => {
+  if (!maskReady) return;
+
+  layerCtx.clearRect(
+    0, 0, maskLayer.width, maskLayer.height
+  );
+
+  renderMask();
+};
+
+document.getElementById("saveMask").onclick = () => {
+  if (!maskReady) return;
+
+  const output = document.createElement("canvas");
+  output.width = maskLayer.width;
+  output.height = maskLayer.height;
+
+  const ctx = output.getContext("2d");
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, output.width, output.height);
+
+  ctx.globalCompositeOperation = "source-over";
+
+  // Export painted pixels as white, everything else black.
+  const source = layerCtx.getImageData(
+    0, 0, maskLayer.width, maskLayer.height
+  );
+
+  const result = ctx.createImageData(
+    maskLayer.width, maskLayer.height
+  );
+
+  for (let i = 0; i < source.data.length; i += 4) {
+    const alpha = source.data[i + 3] / 255;
+    const value = Math.round(alpha * 255);
+
+    result.data[i] = value;
+    result.data[i + 1] = value;
+    result.data[i + 2] = value;
+    result.data[i + 3] = 255;
+  }
+
+  ctx.putImageData(result, 0, 0);
+
+  const link = document.createElement("a");
+  link.download = "JETI-hair-mask.png";
+  link.href = output.toDataURL("image/png");
+  link.click();
+
+  document.getElementById("maskStatus").textContent =
+    "Hair mask saved. White = editable hair. Black = protected.";
+};
+
+// Automatically load the original photo into the mask editor.
+const previousShowOriginal = showOriginal;
+
+showOriginal = function(data) {
+  previousShowOriginal(data);
+  loadMaskPhoto();
+};
+
 </script>
 </body>
 </html>
