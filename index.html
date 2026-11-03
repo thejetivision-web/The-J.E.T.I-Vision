@@ -859,7 +859,18 @@ showOriginal = function(data) {
   previousShowOriginal(data);
   loadMaskPhoto();
 };
+document.getElementById("saveOriginal").onclick = () => {
+  if (!originalPhoto) {
+    alert("Please take a photo first.");
+    return;
+  }
 
+  const link = document.createElement("a");
+  link.href = originalPhoto;
+  link.download = "JETI-original-photo.jpg";
+  link.click();
+};
+       
 </script>
 </body>
 </html>
