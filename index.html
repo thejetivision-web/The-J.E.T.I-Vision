@@ -871,7 +871,63 @@ document.getElementById("saveOriginal").onclick = () => {
   link.download = "JETI-original-photo.jpg";
   link.click();
 };
-       
+
+/* J.E.T.I. FACE LOCK — PHASE 1 */
+
+// Preserve original pixels outside the painted hair mask.
+function createFaceLockedImage() {
+  if (!originalPhoto || !generatedPhoto || !maskReady) {
+    alert("Load an original photo, an AI result, and a hair mask first.");
+    return;
+  }
+
+  const original = new Image();
+  const generated = new Image();
+
+  original.onload = () => {
+    generated.onload = () => {
+      const width = original.naturalWidth;
+      const height = original.naturalHeight;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+
+      // Start with the untouched original photograph.
+      ctx.drawImage(original, 0, 0, width, height);
+
+      // Extract the generated image only inside the hair mask.
+      const hairCanvas = document.createElement("canvas");
+      hairCanvas.width = width;
+      hairCanvas.height = height;
+      const hairCtx = hairCanvas.getContext("2d");
+
+      hairCtx.drawImage(generated, 0, 0, width, height);
+
+      hairCtx.globalCompositeOperation = "destination-in";
+      hairCtx.drawImage(maskLayer, 0, 0, width, height);
+      hairCtx.globalCompositeOperation = "source-over";
+
+      // Overlay only the masked generated pixels.
+      ctx.drawImage(hairCanvas, 0, 0);
+
+      const result = canvas.toDataURL("image/png");
+
+      const link = document.createElement("a");
+      link.href = result;
+      link.download = "JETI-face-locked-result.png";
+      link.click();
+
+      setStatus("Face Lock result saved.");
+    };
+
+    generated.src = generatedPhoto;
+  };
+
+  original.src = originalPhoto;
+}
+
 </script>
 </body>
 </html>
