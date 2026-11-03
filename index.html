@@ -509,12 +509,19 @@ selectedStyle+" selected."
 });
 
 $("prepare").onclick=()=>{
-if(!originalPhoto)return;
+  if(!originalPhoto)return;
 
-setStatus(
-"Photo prepared for "+selectedStyle+
-". AI generation is not connected yet."
-);
+  $("preparedPhoto").src=originalPhoto;
+
+  $("preparedStyle").textContent=
+    "Selected hairstyle: "+selectedStyle;
+
+  $("preparedPreview").style.display="block";
+
+  setStatus(
+    "Photo ready for "+selectedStyle+
+    ". AI generation is not connected yet."
+  );
 };
 
 $("generatedFile").onchange=event=>{
