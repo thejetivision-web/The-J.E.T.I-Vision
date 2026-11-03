@@ -294,6 +294,62 @@ hair mask while protecting facial features.
 </section>
 
 <section class="panel">
+  <h2>4. Protect Your Face — Hair Mask</h2>
+
+  <p class="small">
+    Paint over the hair you want AI to replace.
+    Keep your eyes, nose, lips, and face unpainted.
+    Pink shows the editable hair region.
+  </p>
+
+  <div id="maskEditor" style="
+    position:relative;
+    width:100%;
+    border-radius:12px;
+    overflow:hidden;
+    background:#09090b;
+    touch-action:none;
+  ">
+    <canvas id="hairMaskCanvas"
+      style="display:block;width:100%;height:auto;
+      touch-action:none;cursor:crosshair;">
+    </canvas>
+  </div>
+
+  <div class="slider-box">
+    <div class="slider-row">
+      <span>Brush Size</span>
+      <span id="brushSizeLabel">30</span>
+    </div>
+    <input id="brushSize" type="range"
+      min="5" max="100" value="30">
+  </div>
+
+  <div class="buttons">
+    <button id="paintMode" class="primary">
+      Paint Hair
+    </button>
+    <button id="eraseMode">
+      Erase Mask
+    </button>
+  </div>
+
+  <div class="buttons">
+    <button id="clearMask">
+      Clear Mask
+    </button>
+    <button id="saveMask" class="primary">
+      Save Hair Mask
+    </button>
+  </div>
+
+  <p id="maskStatus" class="small">
+    Capture a photo first, then paint the hair region.
+  </p>
+</section>
+
+       
+<section class="panel">
 <h2>4. Test an AI-generated result</h2>
 
 <p class="small">
