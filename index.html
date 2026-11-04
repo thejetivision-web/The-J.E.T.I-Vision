@@ -1,941 +1,981 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>J.E.T.I. Vision | Face Protection</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.E.T.I. Vision | Curved Fit Prototype v3.6</title>
 <style>
 *{box-sizing:border-box}
-:root{
---rose:#dfaebc;
---bg:#09090b;
---panel:#1b161b;
---border:#503642;
-}
-body{
-margin:0;
-background:var(--bg);
-color:white;
-font-family:Arial,sans-serif;
-}
-.app{
-max-width:560px;
-margin:auto;
-padding:22px 15px 50px;
-}
-header{text-align:center;margin-bottom:24px}
-h1{
-color:var(--rose);
-letter-spacing:4px;
-font-size:28px;
-margin:0;
-}
-.tagline{
-font-size:12px;
-letter-spacing:2px;
-margin-top:9px;
-color:#d4b6c2;
-}
-.panel{
-background:var(--panel);
-border:1px solid var(--border);
-border-radius:19px;
-padding:16px;
-margin-bottom:16px;
-}
-h2{font-size:17px;margin:0 0 14px}
-.stage{
-position:relative;
-width:100%;
-aspect-ratio:3/4;
-background:#09090b;
-border-radius:13px;
-overflow:hidden;
-display:grid;
-place-items:center;
-}
-.stage video,.stage img{
-width:100%;
-height:100%;
-object-fit:contain;
-}
-.stage video{transform:scaleX(-1)}
-.stage img[hidden],
-.stage video[hidden]{display:none}
-.placeholder{
-color:#bdb1b7;
-text-align:center;
-padding:20px;
-}
-.guide{
-position:absolute;
-width:52%;
-height:52%;
-top:17%;
-left:24%;
-border:2px dashed #e8b8c6;
-border-radius:48%;
-pointer-events:none;
-display:none;
-}
-.guide.on{display:block}
-.buttons{
-display:flex;
-gap:9px;
-flex-wrap:wrap;
-margin-top:13px;
-}
-button,.upload{
-flex:1;
-padding:13px 10px;
-border-radius:12px;
-border:1px solid #8a6172;
-background:#392831;
-color:white;
-font-weight:bold;
-font-size:13px;
-cursor:pointer;
-text-align:center;
-}
-button.primary{
-background:var(--rose);
-color:#21141a;
-}
-button:disabled{
-opacity:.4;
-cursor:not-allowed;
-}
-input[type=file]{display:none}
-.styles{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:9px;
-}
-.style.selected{
-background:var(--rose);
-color:#21141a;
-}
-.small{
-color:#c8bbc2;
-font-size:13px;
-line-height:1.6;
-}
-.status{
-font-size:13px;
-color:#e9bfcd;
-margin-top:12px;
-min-height:20px;
-}
-.compare{
-display:none;
-margin-top:16px;
-}
-.compare.visible{display:block}
-.compare-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-}
-.compare-grid img{
-width:100%;
-aspect-ratio:3/4;
-object-fit:contain;
-background:#08080a;
-border-radius:10px;
-}
-.caption{
-font-size:12px;
-text-align:center;
-color:#d9c4cd;
-margin-top:6px;
-}
-.warning{
-padding:12px;
-background:#30242b;
-border-left:3px solid var(--rose);
-border-radius:8px;
-font-size:12px;
-line-height:1.6;
-margin-top:12px;
-}
-.slider-row{
-display:flex;
-justify-content:space-between;
-font-size:12px;
-margin-bottom:8px;
-}
-input[type=range]{
-width:100%;
-accent-color:var(--rose);
-}
-.slider-box{margin-top:15px}
-.overlay-box{
-position:relative;
-width:100%;
-aspect-ratio:3/4;
-overflow:hidden;
-background:#08080a;
-border-radius:12px;
-margin-top:12px;
-}
-.overlay-box img{
-position:absolute;
-inset:0;
-width:100%;
-height:100%;
-object-fit:contain;
-}
-#overlayOriginal{
-clip-path:inset(0 50% 0 0);
-}
-#splitLine{
-position:absolute;
-left:50%;
-top:0;
-height:100%;
-border-left:2px solid var(--rose);
-pointer-events:none;
-}
-footer{
-text-align:center;
-font-size:11px;
-letter-spacing:2px;
-color:#a48c97;
-margin-top:24px;
-}
+:root{--pink:#dba3be;--pale:#f5e4ec}
+body{margin:0;background:#080808;color:white;font-family:Arial,sans-serif}
+.app{width:min(100%,480px);margin:auto;padding:12px 12px 30px}
+.mirror{position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;background:#181818;border:1px solid #684a5a;border-radius:22px;isolation:isolate}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+#hair{position:absolute;display:none;max-width:none;height:auto;pointer-events:none;transform-origin:center;z-index:5}
+.brand{position:absolute;top:14px;left:14px;z-index:10;letter-spacing:2px;font-weight:bold;font-size:13px;text-shadow:0 2px 6px black}
+.start{position:absolute;inset:0;z-index:20;background:#101010;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:20px}
+.start h1{letter-spacing:6px;font-size:34px;margin:0}
+.start p{font-size:13px;color:#ddd;margin:0}
+button{border:0;background:var(--pale);color:#261923;font-weight:bold;cursor:pointer;border-radius:22px;padding:12px 8px;font-size:12px}
+button.active,.start button{background:var(--pink)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.start button{padding:14px 30px}
+.panel{margin-top:14px;background:#171417;border:1px solid #322630;border-radius:20px;padding:14px}
+.heading{color:#c7b8c1;font-size:11px;letter-spacing:2px;margin-bottom:12px}
+.buttons{display:flex;gap:8px;margin-bottom:9px}
+.buttons button{flex:1;min-width:0}
+.toggle{width:100%;display:flex;justify-content:space-between;align-items:center;background:#30222b;color:white;border:1px solid #775267;border-radius:12px;margin-top:6px;padding:13px}
+.adjustments{display:none;background:#211b20;border-radius:13px;margin-top:12px;padding:14px}
+.adjustments.open{display:block}
+.slider{margin-bottom:16px}
+.slider label{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px}
+.slider input{width:100%;accent-color:var(--pink)}
+.status{text-align:center;color:#cfc2ca;font-size:12px;padding:12px 2px 0;min-height:30px}
+.footer{text-align:center;color:#9e8b97;font-size:11px;letter-spacing:2px;padding-top:20px}
+.mirror:fullscreen{width:100vw;height:100dvh;aspect-ratio:auto;border:0;border-radius:0}
+@media(min-width:700px){.app{width:min(100%,560px)}.mirror{aspect-ratio:4/5}}
 </style>
 </head>
 <body>
-
 <main class="app">
-<header>
-<h1>J.E.T.I. VISION</h1>
-<div class="tagline">CHANGE THE HAIR. KEEP THE FACE.</div>
-</header>
+<div class="mirror" id="mirror">
+  <video id="video" autoplay muted playsinline></video>
+  <img id="hair" alt="Virtual hairstyle">
+  <div class="brand">J.E.T.I. VISION</div>
+  <div class="start" id="startScreen">
+    <h1>J.E.T.I.</h1>
+    <p>The Future of Hair Starts Here</p>
+    <button id="startButton">Touch to Begin</button>
+  </div>
+</div>
 
 <section class="panel">
-<h2>1. Capture your original photo</h2>
-
-<div class="stage">
-<video id="camera" autoplay muted playsinline hidden></video>
-<img id="original" alt="Original photo" hidden>
-<div id="placeholder" class="placeholder">
-Start your camera or upload a photo.
-</div>
-<div id="faceGuide" class="guide"></div>
-</div>
-
-<div class="buttons">
-<button id="start" class="primary">Start Camera</button>
-<button id="snap" disabled>Take Photo</button>
-<label class="upload" for="photoFile">Upload Photo</label>
-<input id="photoFile" type="file" accept="image/*">
-</div>
-
-<div class="buttons">
-<button id="retake">New Photo</button>
-<button id="guideButton">Face Guide: Off</button>
-</div>
-
-<p class="small">
-Your original photo remains in your browser during this test.
-No image is sent to an AI service.
-</p>
-</section>
-
-<section class="panel">
-<h2>2. Select your hairstyle</h2>
-
-<div class="styles">
-<button class="style selected" data-style="Pixie Cut">
-Pixie Cut
-</button>
-<button class="style" data-style="Goddess Braids">
-Goddess Braids
-</button>
-<button class="style" data-style="Blonde Waves">
-Blonde Waves
-</button>
-<button class="style" data-style="Classic Side Part">
-Classic Side Part
-</button>
-</div>
-
-<p class="small">
-Our first test focuses on replacing long hair with a short
-pixie cut without changing the customer's facial identity.
-</p>
-</section>
-
-<section class="panel">
-<h2>3. Prepare your AI preview</h2>
-
-<button id="prepare" class="primary" style="width:100%" disabled>
-Prepare My Preview
-</button>
-
-<div id="status" class="status">
-Take or upload a photo to begin.
-</div> 
-<div id="preparedPreview" style="display:none; margin-top:18px;">
-<h2>Your Original Photo</h2>
-<img id="preparedPhoto"
-       alt="Your captured photo"
-       style="width:100%; border-radius:12px;">
-  <p id="preparedStyle" class="small"></p>
-</div>
-
-<div class="warning">
-AI generation is not connected yet. The next step is to
-integrate a hair-editing model that can use a controlled
-hair mask while protecting facial features.
-</div>
-              <div class="buttons">
-  <button id="saveOriginal" class="primary">
-    Save Original Photo
-  </button>
-</div>
-</section>
-
-<section class="panel">
-
-  <h2>4. Protect Your Face — Hair Mask</h2>
-
-  <p class="small">
-    Paint over the hair you want AI to replace.
-    Keep your eyes, nose, lips, and face unpainted.
-    Pink shows the editable hair region.
-  </p>
-
-  <div id="maskEditor" style="
-    position:relative;
-    width:100%;
-    border-radius:12px;
-    overflow:hidden;
-    background:#09090b;
-    touch-action:none;
-  ">
-    <canvas id="hairMaskCanvas"
-      style="display:block;width:100%;height:auto;
-      touch-action:none;cursor:crosshair;">
-    </canvas>
+  <div class="heading">EXPLORE YOUR LOOK</div>
+  <div class="buttons">
+    <button id="btnA">Blonde Waves</button>
+    <button id="btnB">Goddess Braids</button>
+    <button id="btnC">Pixie Cut</button>
+    <button id="btnClear">Clear</button>
   </div>
 
-  <div class="slider-box">
-    <div class="slider-row">
-      <span>Brush Size</span>
-      <span id="brushSizeLabel">30</span>
+  <div class="heading" style="margin-top:16px">MEN'S HAIRCUTS</div>
+  <div class="buttons">
+    <button id="btnM1">Low Taper Fade</button>
+    <button id="btnM2">360 Waves</button>
+    <button id="btnM3">Textured Crop</button>
+    <button id="btnM4">Classic Side Part</button>
+  </div>
+
+  <div class="buttons">
+    <button id="btnBlend" class="active" aria-pressed="true">Adaptive Blend: On</button>
+  </div>
+
+  <div class="buttons">
+    <button id="btnAuto" class="active">Auto Fit</button>
+    <button id="btnFull">Fullscreen</button>
+    <button id="btnReset">Reset</button>
+  </div>
+
+  <button id="btnAdjust" class="toggle" aria-expanded="false" aria-controls="adjustments" disabled>
+    <span>Adjust Hair</span><span id="arrow">+</span>
+  </button>
+
+  <div class="adjustments" id="adjustments">
+    <div class="slider">
+      <label for="sizeSlider">Hair Size <span id="sizeValue">100%</span></label>
+      <input id="sizeSlider" type="range" min="40" max="200" value="100">
     </div>
-    <input id="brushSize" type="range"
-      min="5" max="100" value="30">
+    <div class="slider">
+      <label for="widthSlider">Hair Width <span id="widthValue">100%</span></label>
+      <input id="widthSlider" type="range" min="70" max="180" value="100">
+    </div>
+    <div class="slider">
+      <label for="ySlider">Move Up / Down <span id="yValue">0</span></label>
+      <input id="ySlider" type="range" min="-200" max="200" value="0">
+    </div>
+    <div class="slider">
+      <label for="xSlider">Move Left / Right <span id="xValue">0</span></label>
+      <input id="xSlider" type="range" min="-200" max="200" value="0">
+    </div>
+    <div class="buttons"><button id="btnResetFit">Reset Hair Fit</button></div>
   </div>
-
-  <div class="buttons">
-    <button id="paintMode" class="primary">
-      Paint Hair
-    </button>
-    <button id="eraseMode">
-      Erase Mask
-    </button>
-  </div>
-
-  <div class="buttons">
-    <button id="clearMask">
-      Clear Mask
-    </button>
-    <button id="saveMask" class="primary">
-      Save Hair Mask
-    </button>
-  </div>
-
-  <p id="maskStatus" class="small">
-    Capture a photo first, then paint the hair region.
-  </p>
+  <div class="status" id="status">Ready to begin</div>
 </section>
-
-       
-<section class="panel">
-<h2>4. Test an AI-generated result</h2>
-
-<p class="small">
-Once you have a generated hairstyle image, upload it here
-to compare it with the original.
-</p>
-
-<label class="upload" for="generatedFile"
-style="display:block">
-Upload Generated Hairstyle Photo
-</label>
-
-<input id="generatedFile" type="file" accept="image/*">
-
-<div class="buttons">
-  <button id="faceLockButton" class="primary">
-    Apply Face Lock
-  </button>
-</div>
-
-<div id="comparison" class="compare">
-
-<div class="compare-grid">
-<div>
-<img id="before" alt="Original photo">
-<div class="caption">Original Face</div>
-</div>
-<div>
-<img id="after" alt="Generated hairstyle">
-<div class="caption">AI Hairstyle</div>
-</div>
-</div>
-
-<h2 style="margin-top:22px">
-Before / After Slider
-</h2>
-
-<div class="overlay-box">
-<img id="overlayAfter" alt="Generated result">
-<img id="overlayOriginal" alt="Original">
-<div id="splitLine"></div>
-</div>
-
-<div class="slider-box">
-<div class="slider-row">
-<span>Original</span>
-<span>AI Preview</span>
-</div>
-<input id="compareSlider"
-type="range" min="0" max="100" value="50">
-</div>
-
-<div class="warning">
-Compare the eyes, nose, lips, skin texture, jawline,
-and facial proportions. The goal is to change the hair
-without changing the customer's identity.
-</div>
-
-</div>
-</section>
-
-<footer>
-J.E.T.I. VISION · PRIVATE DEVELOPMENT
-</footer>
+<div class="footer">THE J.E.T.I. VISION</div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script>
-const $=id=>document.getElementById(id);
+"use strict";
 
-let stream=null;
-let originalPhoto=null;
-let generatedPhoto=null;
-let selectedStyle="Pixie Cut";
-let guideOn=false;
+// J.E.T.I. VISION V3.6
+// Adaptive brightness and selective edge blending.
 
-function setStatus(message){
-$("status").textContent=message;
-}
+const $ = id => document.getElementById(id);
+const mirror = $("mirror");
+const video = $("video");
+const hair = $("hair");
+const statusText = $("status");
+const sizeSlider = $("sizeSlider");
+const widthSlider = $("widthSlider");
+const xSlider = $("xSlider");
+const ySlider = $("ySlider");
+const btnAuto = $("btnAuto");
+const btnAdjust = $("btnAdjust");
 
-function stopCamera(){
-if(stream){
-stream.getTracks().forEach(track=>track.stop());
-stream=null;
-}
-$("snap").disabled=true;
-}
+const styleButtons = {
+  a:$("btnA"),b:$("btnB"),c:$("btnC"),
+  m1:$("btnM1"),m2:$("btnM2"),
+  m3:$("btnM3"),m4:$("btnM4")
+};
 
-function showOriginal(data){
-originalPhoto=data;
+let currentStyle = null;
+let camera = null;
+let cameraStarted = false;
+let cameraStarting = false;
+let face = null;
+let missingFrames = 0;
+let activeImageRequest = 0;
+let autoFit = true;
+let blendEnabled = true;
+let lightLevel = 0.5;
+let lastLightSample = 0;
 
-$("original").src=data;
-$("original").hidden=false;
-$("camera").hidden=true;
-$("placeholder").style.display="none";
+const lightCanvas = document.createElement("canvas");
+lightCanvas.width = 64;
+lightCanvas.height = 48;
 
-$("prepare").disabled=false;
-
-$("before").src=data;
-$("overlayOriginal").src=data;
-
-if(generatedPhoto){
-showComparison();
-}else{
-$("comparison").classList.remove("visible");
-}
-
-setStatus(
-"Original photo saved locally. Choose your hairstyle."
-);
-}
-
-$("start").onclick=async()=>{
-try{
-stopCamera();
-
-stream=await navigator.mediaDevices.getUserMedia({
-video:{
-facingMode:"user",
-width:{ideal:1280},
-height:{ideal:960}
-},
-audio:false
+const lightCtx = lightCanvas.getContext("2d", {
+  willReadFrequently:true
 });
 
-$("camera").srcObject=stream;
-await $("camera").play();
+const REFERENCE_FACE_WIDTH = 150;
 
-$("camera").hidden=false;
-$("original").hidden=true;
-$("placeholder").style.display="none";
+const presets = {
+  a:{
+    image:"./style-a.png",
+    size:157,width:118,
+    x:-4,y:-41,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
 
-$("snap").disabled=false;
+  b:{
+    image:"./style-b.png?v=2",
+    size:96,width:128,
+    x:13,y:-40,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
 
-setStatus("Camera ready. Take your photo.");
+  c:{
+    image:"./style-c.png",
+    size:90,width:94,
+    x:-4,y:-65,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
 
-}catch(error){
-setStatus(
-"Camera unavailable. Check permissions or upload a photo."
-);
-}
+  m1:{
+    image:"./style-m1.png?v=3",
+    size:85,width:100,
+    x:8,y:-70,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
+
+  m2:{
+    image:"./style-m2.png?v=3",
+    size:82,width:99,
+    x:0,y:-74,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
+
+  m3:{
+    image:"./style-m3.png?v=3",
+    size:83,width:95,
+    x:2,y:-61,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  },
+
+  m4:{
+    image:"./style-m4.png?v=10",
+    size:91,width:88,
+    x:0,y:-66,
+    widthMultiplier:1.8,
+    hairlineOffset:-0.08
+  }
 };
 
-$("snap").onclick=()=>{
-const video=$("camera");
+const settings = {};
 
-if(!video.videoWidth)return;
-
-const canvas=document.createElement("canvas");
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
-
-const ctx=canvas.getContext("2d");
-
-ctx.translate(canvas.width,0);
-ctx.scale(-1,1);
-
-ctx.drawImage(
-video,0,0,canvas.width,canvas.height
-);
-
-showOriginal(
-canvas.toDataURL("image/jpeg",0.94)
-);
-
-stopCamera();
-};
-
-$("photoFile").onchange=event=>{
-const file=event.target.files[0];
-if(!file)return;
-
-const reader=new FileReader();
-
-reader.onload=()=>{
-stopCamera();
-showOriginal(reader.result);
-};
-
-reader.readAsDataURL(file);
-};
-
-$("retake").onclick=()=>{
-stopCamera();
-
-originalPhoto=null;
-generatedPhoto=null;
-
-$("original").hidden=true;
-$("camera").hidden=true;
-$("placeholder").style.display="block";
-$("comparison").classList.remove("visible");
-
-$("prepare").disabled=true;
-
-setStatus("Ready for a new photo.");
-};
-
-$("guideButton").onclick=()=>{
-guideOn=!guideOn;
-
-$("faceGuide").classList.toggle("on",guideOn);
-
-$("guideButton").textContent=
-"Face Guide: "+(guideOn?"On":"Off");
-};
-
-document.querySelectorAll(".style").forEach(button=>{
-button.onclick=()=>{
-selectedStyle=button.dataset.style;
-
-document.querySelectorAll(".style").forEach(b=>{
-b.classList.toggle("selected",b===button);
-});
-
-setStatus(
-selectedStyle+" selected."
-);
-};
-});
-
-$("prepare").onclick=()=>{
-  if(!originalPhoto)return;
-
-  $("preparedPhoto").src=originalPhoto;
-
-  $("preparedStyle").textContent=
-    "Selected hairstyle: "+selectedStyle;
-
-  $("preparedPreview").style.display="block";
-
-  setStatus(
-    "Photo ready for "+selectedStyle+
-    ". AI generation is not connected yet."
-  );
-};
-
-$("generatedFile").onchange=event=>{
-const file=event.target.files[0];
-if(!file)return;
-
-const reader=new FileReader();
-
-reader.onload=()=>{
-generatedPhoto=reader.result;
-
-if(originalPhoto){
-showComparison();
-}else{
-setStatus(
-"Generated photo loaded. Add the original photo to compare."
-);
-}
-};
-
-reader.readAsDataURL(file);
-};
-
-function showComparison(){
-$("after").src=generatedPhoto;
-$("overlayAfter").src=generatedPhoto;
-
-$("before").src=originalPhoto;
-$("overlayOriginal").src=originalPhoto;
-
-$("comparison").classList.add("visible");
-
-updateComparison();
-
-setStatus(
-"Comparison ready. Check whether your face changed."
-);
+for(const key of Object.keys(presets)){
+  const p = presets[key];
+  settings[key] = {
+    size:p.size,
+    width:p.width,
+    x:p.x,
+    y:p.y
+  };
 }
 
-function updateComparison(){
-const value=Number($("compareSlider").value);
+const originals = {};
+const warpKeys = {};
+const warpedImages = {};
 
-$("overlayOriginal").style.clipPath=
-"inset(0 "+(100-value)+"% 0 0)";
+const warpPass = document.createElement("canvas");
+const warpOutput = document.createElement("canvas");
 
-$("splitLine").style.left=value+"%";
-}
+for(const [key,preset] of Object.entries(presets)){
+  const img = new Image();
 
-$("compareSlider").oninput=updateComparison;
+  originals[key] = img;
+  warpKeys[key] = "";
 
-window.addEventListener("pagehide",stopCamera);
+  img.onload = ()=>{
+    warpKeys[key] = "";
+    delete warpedImages[key];
 
-       
-/* J.E.T.I. HAIR MASK EDITOR */
-
-const maskCanvas = document.getElementById("hairMaskCanvas");
-const maskCtx = maskCanvas.getContext("2d");
-
-const maskLayer = document.createElement("canvas");
-const layerCtx = maskLayer.getContext("2d");
-
-let maskMode = "paint";
-let maskDrawing = false;
-let lastMaskPoint = null;
-let maskReady = false;
-
-function loadMaskPhoto() {
-  if (!originalPhoto) return;
-
-  const image = new Image();
-
-  image.onload = () => {
-    const maxDimension = 1200;
-    const scale = Math.min(
-      1,
-      maxDimension / Math.max(image.width, image.height)
-    );
-
-    const w = Math.round(image.width * scale);
-    const h = Math.round(image.height * scale);
-
-    maskCanvas.width = w;
-    maskCanvas.height = h;
-    maskLayer.width = w;
-    maskLayer.height = h;
-
-    layerCtx.clearRect(0, 0, w, h);
-
-    maskReady = true;
-    renderMask();
-
-    document.getElementById("maskStatus").textContent =
-      "Photo loaded. Paint the hair you want to replace.";
+    if(currentStyle === key){
+      positionHair();
+    }
   };
 
-  image.src = originalPhoto;
-}
-
-function renderMask() {
-  if (!maskReady || !originalPhoto) return;
-
-  const image = new Image();
-
-  image.onload = () => {
-    maskCtx.clearRect(
-      0, 0, maskCanvas.width, maskCanvas.height
-    );
-
-    maskCtx.drawImage(
-      image, 0, 0,
-      maskCanvas.width, maskCanvas.height
-    );
-
-    maskCtx.save();
-    maskCtx.globalAlpha = 0.55;
-    maskCtx.drawImage(maskLayer, 0, 0);
-    maskCtx.restore();
+  img.onerror = ()=>{
+    if(currentStyle === key){
+      statusText.textContent =
+        "Image missing: " + preset.image.split("?")[0];
+    }
   };
 
-  image.src = originalPhoto;
+  img.src = preset.image;
 }
 
-function maskPoint(event) {
-  const rect = maskCanvas.getBoundingClientRect();
+function videoCoordinates(point){
+  const mw = mirror.clientWidth;
+  const mh = mirror.clientHeight;
+
+  const vw = video.videoWidth || 640;
+  const vh = video.videoHeight || 480;
+
+  const scale = Math.max(mw/vw,mh/vh);
+  const rw = vw*scale;
+  const rh = vh*scale;
+
+  const cropX = (rw-mw)/2;
+  const cropY = (rh-mh)/2;
 
   return {
-    x: (event.clientX - rect.left) *
-      maskCanvas.width / rect.width,
-    y: (event.clientY - rect.top) *
-      maskCanvas.height / rect.height
+    x:(1-point.x)*rw-cropX,
+    y:point.y*rh-cropY
   };
 }
 
-function drawMaskStroke(from, to) {
-  const brush = Number(
-    document.getElementById("brushSize").value
-  );
+function applyCurvedFit(key){
+  const original = originals[key];
 
-  const displayScale =
-    maskCanvas.width / maskCanvas.getBoundingClientRect().width;
-
-  layerCtx.save();
-
-  layerCtx.lineCap = "round";
-  layerCtx.lineJoin = "round";
-  layerCtx.lineWidth = brush * displayScale;
-
-  if (maskMode === "erase") {
-    layerCtx.globalCompositeOperation = "destination-out";
-    layerCtx.strokeStyle = "rgba(0,0,0,1)";
-  } else {
-    layerCtx.globalCompositeOperation = "source-over";
-    layerCtx.strokeStyle = "rgba(235,100,155,1)";
-  }
-
-  layerCtx.beginPath();
-  layerCtx.moveTo(from.x, from.y);
-  layerCtx.lineTo(to.x, to.y);
-  layerCtx.stroke();
-
-  layerCtx.restore();
-  renderMask();
-}
-
-maskCanvas.addEventListener("pointerdown", event => {
-  if (!maskReady) return;
-
-  maskDrawing = true;
-  lastMaskPoint = maskPoint(event);
-
-  maskCanvas.setPointerCapture(event.pointerId);
-  drawMaskStroke(lastMaskPoint, lastMaskPoint);
-});
-
-maskCanvas.addEventListener("pointermove", event => {
-  if (!maskDrawing) return;
-
-  const point = maskPoint(event);
-  drawMaskStroke(lastMaskPoint, point);
-  lastMaskPoint = point;
-});
-
-function stopMaskDrawing() {
-  maskDrawing = false;
-  lastMaskPoint = null;
-}
-
-maskCanvas.addEventListener("pointerup", stopMaskDrawing);
-maskCanvas.addEventListener("pointercancel", stopMaskDrawing);
-
-document.getElementById("paintMode").onclick = () => {
-  maskMode = "paint";
-
-  document.getElementById("paintMode")
-    .classList.add("primary");
-
-  document.getElementById("eraseMode")
-    .classList.remove("primary");
-};
-
-document.getElementById("eraseMode").onclick = () => {
-  maskMode = "erase";
-
-  document.getElementById("eraseMode")
-    .classList.add("primary");
-
-  document.getElementById("paintMode")
-    .classList.remove("primary");
-};
-
-document.getElementById("brushSize").oninput = event => {
-  document.getElementById("brushSizeLabel")
-    .textContent = event.target.value;
-};
-
-document.getElementById("clearMask").onclick = () => {
-  if (!maskReady) return;
-
-  layerCtx.clearRect(
-    0, 0, maskLayer.width, maskLayer.height
-  );
-
-  renderMask();
-};
-
-document.getElementById("saveMask").onclick = () => {
-  if (!maskReady) return;
-
-  const output = document.createElement("canvas");
-  output.width = maskLayer.width;
-  output.height = maskLayer.height;
-
-  const ctx = output.getContext("2d");
-
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, output.width, output.height);
-
-  ctx.globalCompositeOperation = "source-over";
-
-  // Export painted pixels as white, everything else black.
-  const source = layerCtx.getImageData(
-    0, 0, maskLayer.width, maskLayer.height
-  );
-
-  const result = ctx.createImageData(
-    maskLayer.width, maskLayer.height
-  );
-
-  for (let i = 0; i < source.data.length; i += 4) {
-    const alpha = source.data[i + 3] / 255;
-    const value = Math.round(alpha * 255);
-
-    result.data[i] = value;
-    result.data[i + 1] = value;
-    result.data[i + 2] = value;
-    result.data[i + 3] = 255;
-  }
-
-  ctx.putImageData(result, 0, 0);
-
-  const link = document.createElement("a");
-  link.download = "JETI-hair-mask.png";
-  link.href = output.toDataURL("image/png");
-  link.click();
-
-  document.getElementById("maskStatus").textContent =
-    "Hair mask saved. White = editable hair. Black = protected.";
-};
-
-// Automatically load the original photo into the mask editor.
-const previousShowOriginal = showOriginal;
-
-showOriginal = function(data) {
-  previousShowOriginal(data);
-  loadMaskPhoto();
-};
-document.getElementById("saveOriginal").onclick = () => {
-  if (!originalPhoto) {
-    alert("Please take a photo first.");
+  if(
+    !face ||
+    !original ||
+    !original.complete ||
+    !original.naturalWidth
+  ){
     return;
   }
 
-  const link = document.createElement("a");
-  link.href = originalPhoto;
-  link.download = "JETI-original-photo.jpg";
-  link.click();
-};
+  const templeL = videoCoordinates(face.leftTemple);
+  const templeR = videoCoordinates(face.rightTemple);
 
-/* J.E.T.I. FACE LOCK — PHASE 1 */
+  const foreheadL = videoCoordinates(face.foreheadLeft);
+  const foreheadR = videoCoordinates(face.foreheadRight);
 
-// Preserve original pixels outside the painted hair mask.
-function createFaceLockedImage() {
-  if (!originalPhoto || !generatedPhoto || !maskReady) {
-    alert("Load an original photo, an AI result, and a hair mask first.");
+  const templeWidth = Math.abs(templeR.x-templeL.x);
+
+  if(templeWidth < 10)return;
+
+  const ratio = Math.max(
+    .35,
+    Math.min(
+      1.05,
+      Math.abs(foreheadR.x-foreheadL.x)/templeWidth
+    )
+  );
+
+  const isLong = key==="a" || key==="b";
+
+  const taper = Math.max(
+    .025,
+    Math.min(
+      isLong ? .075 : .16,
+      (isLong ? .06 : .13)-(ratio-.65)*.08
+    )
+  );
+
+  const curve = Math.max(
+    .01,
+    Math.min(
+      isLong ? .025 : .045,
+      (isLong ? .018 : .025)+(.7-ratio)*.025
+    )
+  );
+
+  const keyForShape =
+    `${Math.round(taper*100)}-${Math.round(curve*1000)}`;
+
+  if(
+    warpKeys[key]===keyForShape &&
+    warpedImages[key]
+  ){
+    if(
+      currentStyle===key &&
+      hair.src!==warpedImages[key]
+    ){
+      hair.src=warpedImages[key];
+    }
     return;
   }
 
-  const original = new Image();
-  const generated = new Image();
+  const w = original.naturalWidth;
+  const h = original.naturalHeight;
 
-  original.onload = () => {
-    generated.onload = () => {
-      const width = original.naturalWidth;
-      const height = original.naturalHeight;
+  const scale = Math.min(1,900/Math.max(w,h));
 
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
+  const cw = Math.max(1,Math.round(w*scale));
+  const ch = Math.max(1,Math.round(h*scale));
 
-      // Start with the untouched original photograph.
-      ctx.drawImage(original, 0, 0, width, height);
+  warpPass.width = cw;
+  warpOutput.width = cw;
 
-      // Extract the generated image only inside the hair mask.
-      const hairCanvas = document.createElement("canvas");
-      hairCanvas.width = width;
-      hairCanvas.height = height;
-      const hairCtx = hairCanvas.getContext("2d");
+  warpPass.height = ch;
+  warpOutput.height = ch;
 
-      hairCtx.drawImage(generated, 0, 0, width, height);
+  const a = warpPass.getContext("2d");
+  const b = warpOutput.getContext("2d");
 
-      hairCtx.globalCompositeOperation = "destination-in";
-      hairCtx.drawImage(maskLayer, 0, 0, width, height);
-      hairCtx.globalCompositeOperation = "source-over";
+  a.clearRect(0,0,cw,ch);
+  b.clearRect(0,0,cw,ch);
 
-      // Overlay only the masked generated pixels.
-      ctx.drawImage(hairCanvas, 0, 0);
+  const rows = 100;
 
-      const result = canvas.toDataURL("image/png");
+  for(let i=0;i<rows;i++){
+    const sy = i*ch/rows;
+    const sh = Math.min(ch-sy,ch/rows+.6);
 
-      const link = document.createElement("a");
-      link.href = result;
-      link.download = "JETI-face-locked-result.png";
-      link.click();
+    const t = sy/ch;
+    const factor = 1-taper*Math.pow(t,1.7);
+    const dw = cw*factor;
 
-      setStatus("Face Lock result saved.");
-    };
+    a.drawImage(
+      original,
+      0,sy/scale,w,sh/scale,
+      (cw-dw)/2,sy,dw,sh
+    );
+  }
 
-    generated.src = generatedPhoto;
+  const cols = 140;
+
+  for(let i=0;i<cols;i++){
+    const sx = i*cw/cols;
+    const sw = Math.min(cw-sx,cw/cols+.65);
+
+    const x = (sx+sw/2-cw/2)/(cw/2);
+    const shift = ch*curve*Math.max(0,1-x*x);
+
+    b.drawImage(
+      warpPass,
+      sx,0,sw,ch,
+      sx,shift,sw,ch-shift
+    );
+  }
+
+  // Feather cutout edges for men's hairstyles.
+  if(key.startsWith("m")){
+    featherInnerEdge(warpOutput);
+  }
+
+  const result = warpOutput.toDataURL("image/png");
+
+  warpedImages[key] = result;
+  warpKeys[key] = keyForShape;
+
+  if(currentStyle === key){
+    hair.src = result;
+  }
+}
+
+// Gentle feathering at opaque-to-transparent edges.
+// Does not remove opaque skin-tone pixels in PNG files.
+
+function featherInnerEdge(canvas){
+  const ctx = canvas.getContext("2d",{
+    willReadFrequently:true
+  });
+
+  const w = canvas.width;
+  const h = canvas.height;
+
+  const data = ctx.getImageData(0,0,w,h);
+  const src = data.data;
+
+  const alpha = new Uint8Array(w*h);
+
+  for(let i=0;i<alpha.length;i++){
+    alpha[i] = src[i*4+3];
+  }
+
+  const x0 = Math.floor(w*.18);
+  const x1 = Math.ceil(w*.82);
+
+  const y0 = Math.floor(h*.12);
+  const y1 = Math.ceil(h*.82);
+
+  for(let y=y0;y<y1;y++){
+    for(let x=x0;x<x1;x++){
+      const i = y*w+x;
+      const a = alpha[i];
+
+      if(a<200)continue;
+
+      let min = 255;
+
+      for(let dy=-2;dy<=2;dy++){
+        const yy = y+dy;
+        if(yy<0||yy>=h)continue;
+
+        for(let dx=-2;dx<=2;dx++){
+          const xx = x+dx;
+          if(xx<0||xx>=w)continue;
+
+          min = Math.min(min,alpha[yy*w+xx]);
+        }
+      }
+
+      if(min<80){
+        src[i*4+3] = Math.min(a,185);
+      }
+    }
+  }
+
+  ctx.putImageData(data,0,0);
+}
+
+// Sample camera brightness periodically.
+// This matches exposure, not skin tone.
+
+function updateLighting(landmarks){
+  if(!blendEnabled||!video.videoWidth)return;
+
+  const now = performance.now();
+
+  if(now-lastLightSample<250)return;
+
+  lastLightSample = now;
+
+  try{
+    lightCtx.drawImage(video,0,0,64,48);
+
+    const pixels =
+      lightCtx.getImageData(0,0,64,48).data;
+
+    const points = [
+      landmarks[50],
+      landmarks[280]
+    ];
+
+    let sum=0;
+    let count=0;
+
+    for(const pt of points){
+      const cx = Math.round(pt.x*63);
+      const cy = Math.round(pt.y*47);
+
+      for(let dy=-2;dy<=2;dy++){
+        for(let dx=-2;dx<=2;dx++){
+          const x=cx+dx;
+          const y=cy+dy;
+
+          if(x<0||x>=64||y<0||y>=48){
+            continue;
+          }
+
+          const i=(y*64+x)*4;
+
+          sum+=(
+            .2126*pixels[i]+
+            .7152*pixels[i+1]+
+            .0722*pixels[i+2]
+          )/255;
+
+          count++;
+        }
+      }
+    }
+
+    if(count){
+      lightLevel =
+        lightLevel*.85+(sum/count)*.15;
+    }
+
+    const brightness = Math.max(
+      .88,
+      Math.min(
+        1.10,
+        .94+(lightLevel-.35)*.32
+      )
+    );
+
+    hair.style.filter =
+      `brightness(${brightness.toFixed(3)})`;
+
+  }catch(error){
+    hair.style.filter="none";
+  }
+}
+
+$("btnBlend").onclick=()=>{
+  blendEnabled=!blendEnabled;
+
+  $("btnBlend").classList.toggle(
+    "active",
+    blendEnabled
+  );
+
+  $("btnBlend").setAttribute(
+    "aria-pressed",
+    String(blendEnabled)
+  );
+
+  $("btnBlend").textContent =
+    "Adaptive Blend: "+(blendEnabled?"On":"Off");
+
+  if(!blendEnabled){
+    hair.style.filter="none";
+  }else{
+    lastLightSample=0;
+  }
+};
+
+function updateLabels(){
+  $("sizeValue").textContent=sizeSlider.value+"%";
+  $("widthValue").textContent=widthSlider.value+"%";
+  $("xValue").textContent=xSlider.value;
+  $("yValue").textContent=ySlider.value;
+}
+
+function loadSliders(key){
+  const s=settings[key];
+
+  sizeSlider.value=s.size;
+  widthSlider.value=s.width;
+  xSlider.value=s.x;
+  ySlider.value=s.y;
+
+  updateLabels();
+}
+
+function saveSliders(){
+  if(!currentStyle)return;
+
+  settings[currentStyle]={
+    size:Number(sizeSlider.value),
+    width:Number(widthSlider.value),
+    x:Number(xSlider.value),
+    y:Number(ySlider.value)
   };
 
-  original.src = originalPhoto;
+  autoFit=false;
+  btnAuto.classList.remove("active");
+
+  updateLabels();
+  positionHair();
+
+  statusText.textContent =
+    "Custom fit active. Tracking continues.";
 }
-       document.getElementById("faceLockButton").onclick =
-  createFaceLockedImage;
-       
+
+function toggleAdjustments(open){
+  $("adjustments").classList.toggle("open",open);
+
+  btnAdjust.setAttribute(
+    "aria-expanded",
+    String(open)
+  );
+
+  $("arrow").textContent=open?"−":"+";
+}
+
+function selectStyle(key){
+  currentStyle=key;
+
+  const requestId=++activeImageRequest;
+  const requestedImage=presets[key].image;
+
+  const testImage=new Image();
+
+  hair.style.visibility="hidden";
+  hair.style.display="none";
+
+  testImage.onload=()=>{
+    if(
+      requestId!==activeImageRequest ||
+      currentStyle!==key
+    ){
+      return;
+    }
+
+    hair.src=requestedImage;
+
+    warpKeys[key]="";
+    delete warpedImages[key];
+
+    if(face){
+      applyCurvedFit(key);
+    }
+
+    hair.style.display="block";
+    positionHair();
+  };
+
+  testImage.onerror=()=>{
+    if(
+      requestId!==activeImageRequest ||
+      currentStyle!==key
+    ){
+      return;
+    }
+
+    hair.style.visibility="hidden";
+
+    statusText.textContent =
+      "Image missing: "+
+      requestedImage.split("?")[0]+
+      ". Upload it beside this HTML file.";
+  };
+
+  testImage.src=requestedImage;
+
+  for(const [id,button] of Object.entries(styleButtons)){
+    button.classList.toggle("active",id===key);
+  }
+
+  btnAdjust.disabled=false;
+  loadSliders(key);
+
+  statusText.textContent=autoFit
+    ?"Smart Auto Fit tracking your face."
+    :"Custom fit tracking your face.";
+}
+
+function clearStyle(){
+  currentStyle=null;
+  activeImageRequest++;
+
+  hair.style.display="none";
+  hair.style.visibility="hidden";
+
+  for(const button of Object.values(styleButtons)){
+    button.classList.remove("active");
+  }
+
+  btnAdjust.disabled=true;
+  toggleAdjustments(false);
+
+  statusText.textContent="Hairstyle cleared.";
+}
+
+function headTilt(leftEye,rightEye){
+  const dx=rightEye.x-leftEye.x;
+  const dy=rightEye.y-leftEye.y;
+
+  let angle=Math.atan2(dy,dx);
+
+  if(angle>Math.PI/2)angle-=Math.PI;
+  if(angle< -Math.PI/2)angle+=Math.PI;
+
+  const limit=25*Math.PI/180;
+
+  return Math.max(
+    -limit,
+    Math.min(limit,angle)
+  );
+}
+
+function positionHair(){
+  if(!currentStyle||!face)return;
+
+  applyCurvedFit(currentStyle);
+
+  const preset=presets[currentStyle];
+  const s=settings[currentStyle];
+
+  const forehead=videoCoordinates(face.forehead);
+  const leftTemple=videoCoordinates(face.leftTemple);
+  const rightTemple=videoCoordinates(face.rightTemple);
+  const leftEye=videoCoordinates(face.leftEye);
+  const rightEye=videoCoordinates(face.rightEye);
+
+  const faceWidth=Math.hypot(
+    rightTemple.x-leftTemple.x,
+    rightTemple.y-leftTemple.y
+  );
+
+  if(
+    !Number.isFinite(faceWidth) ||
+    faceWidth<10
+  ){
+    hair.style.visibility="hidden";
+    return;
+  }
+
+  const faceScale=faceWidth/REFERENCE_FACE_WIDTH;
+  const values=autoFit?preset:s;
+
+  const hairWidth =
+    faceWidth*
+    preset.widthMultiplier*
+    (values.size/100);
+
+  const x=forehead.x+values.x*faceScale;
+
+  const y =
+    forehead.y+
+    faceWidth*preset.hairlineOffset+
+    values.y*faceScale;
+
+  const angle=headTilt(leftEye,rightEye);
+  const stretchX=values.width/100;
+
+  const leftSpan=Math.hypot(
+    leftEye.x-leftTemple.x,
+    leftEye.y-leftTemple.y
+  );
+
+  const rightSpan=Math.hypot(
+    rightTemple.x-rightEye.x,
+    rightTemple.y-rightEye.y
+  );
+
+  const yaw =
+    (rightSpan-leftSpan)/
+    Math.max(1,rightSpan+leftSpan);
+
+  const yawClamped=Math.max(
+    -0.18,
+    Math.min(0.18,yaw)
+  );
+
+  const perspectiveScale =
+    1-Math.abs(yawClamped)*0.18;
+
+  const perspectiveSkew=yawClamped*12;
+
+  hair.style.width=hairWidth+"px";
+  hair.style.left=x+"px";
+  hair.style.top=y+"px";
+
+  hair.style.transform =
+    "translate(-50%, -8%) rotate("+angle+
+    "rad) skewY("+perspectiveSkew+
+    "deg) scaleX("+
+    (stretchX*perspectiveScale)+")";
+
+  if(
+    hair.complete &&
+    hair.naturalWidth>0
+  ){
+    hair.style.visibility="visible";
+  }
+}
+
+for(const slider of [
+  sizeSlider,
+  widthSlider,
+  xSlider,
+  ySlider
+]){
+  slider.addEventListener("input",saveSliders);
+}
+
+for(const [key,button] of Object.entries(styleButtons)){
+  button.onclick=()=>selectStyle(key);
+}
+
+$("btnClear").onclick=clearStyle;
+
+btnAdjust.onclick=()=>{
+  if(!currentStyle)return;
+
+  toggleAdjustments(
+    !$("adjustments").classList.contains("open")
+  );
+};
+
+function resetFit(){
+  if(!currentStyle)return;
+
+  const p=presets[currentStyle];
+
+  settings[currentStyle]={
+    size:p.size,
+    width:p.width,
+    x:p.x,
+    y:p.y
+  };
+
+  autoFit=true;
+  btnAuto.classList.add("active");
+
+  loadSliders(currentStyle);
+  positionHair();
+
+  statusText.textContent="Smart Auto Fit enabled.";
+}
+
+btnAuto.onclick=resetFit;
+$("btnResetFit").onclick=resetFit;
+
+$("btnReset").onclick=()=>location.reload();
+
+$("btnFull").onclick=async()=>{
+  try{
+    if(!document.fullscreenElement){
+      await mirror.requestFullscreen();
+    }else{
+      await document.exitFullscreen();
+    }
+
+    positionHair();
+
+  }catch(error){
+    statusText.textContent =
+      "Fullscreen is unavailable.";
+  }
+};
+
+function smoothPoint(oldPoint,newPoint){
+  const amount=0.3;
+
+  return {
+    x:oldPoint.x+
+      (newPoint.x-oldPoint.x)*amount,
+
+    y:oldPoint.y+
+      (newPoint.y-oldPoint.y)*amount
+  };
+}
+
+const mesh=new FaceMesh({
+  locateFile:file=>
+    "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/"+file
+});
+
+mesh.setOptions({
+  maxNumFaces:1,
+  refineLandmarks:false,
+  minDetectionConfidence:0.6,
+  minTrackingConfidence:0.6
+});
+
+mesh.onResults(results=>{
+  const detected=results.multiFaceLandmarks;
+
+  if(!detected||!detected.length){
+    missingFrames++;
+
+    if(missingFrames>=3){
+      face=null;
+      hair.style.visibility="hidden";
+    }
+
+    return;
+  }
+
+  missingFrames=0;
+
+  const lm=detected[0];
+
+  const next={
+    forehead:lm[10],
+    leftTemple:lm[234],
+    rightTemple:lm[454],
+    leftEye:lm[33],
+    rightEye:lm[263],
+    foreheadLeft:lm[71],
+    foreheadRight:lm[301]
+  };
+
+  if(!face){
+    face=next;
+  }else{
+    for(const key of Object.keys(next)){
+      face[key]=smoothPoint(face[key],next[key]);
+    }
+  }
+
+  updateLighting(lm);
+  positionHair();
+});
+
+async function startCamera(){
+  if(cameraStarted||cameraStarting)return;
+
+  cameraStarting=true;
+
+  $("startButton").disabled=true;
+  $("startButton").textContent="Starting...";
+
+  try{
+    camera=new Camera(video,{
+      onFrame:async()=>{
+        await mesh.send({image:video});
+      },
+      width:640,
+      height:480
+    });
+
+    await camera.start();
+
+    cameraStarted=true;
+
+    $("startScreen").style.display="none";
+
+    statusText.textContent =
+      "Camera ready. Choose a hairstyle.";
+
+  }catch(error){
+    console.error(error);
+
+    $("startButton").disabled=false;
+    $("startButton").textContent="Try Again";
+
+    statusText.textContent =
+      "Camera unavailable. Check permissions.";
+
+  }finally{
+    cameraStarting=false;
+  }
+}
+
+$("startButton").addEventListener(
+  "click",
+  startCamera
+);
+
+window.addEventListener(
+  "resize",
+  positionHair
+);
+
+document.addEventListener(
+  "fullscreenchange",
+  positionHair
+);
+
+updateLabels();
 </script>
 </body>
 </html>
